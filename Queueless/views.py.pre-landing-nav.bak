@@ -1,0 +1,154 @@
+from functools import wraps
+
+from django.shortcuts import redirect, render
+from django.views.decorators.csrf import ensure_csrf_cookie
+from user.models import User
+
+# =========================================================
+# ROLE PROTECTION
+# =========================================================
+
+
+def role_required(*roles):
+
+    def decorator(view_func):
+
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+
+            # User is not logged in
+            if not request.session.get("is_logged_in") or not request.session.get("user_id"):
+                return redirect("/login.html/")
+
+            # Wrong role
+            if roles:
+                current_role = request.session.get("user_role")
+
+                if current_role not in roles:
+                    return redirect("/login.html/")
+
+            try:
+                account = User.objects.get(pk=request.session["user_id"], is_active=True)
+            except (User.DoesNotExist, ValueError, TypeError):
+                request.session.flush()
+                return redirect("/login.html/")
+            if account.role != request.session.get("user_role") or (roles and account.role not in roles):
+                return redirect("/login.html/")
+
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+# =========================================================
+# LOGIN PAGE
+# =========================================================
+
+
+def login(request):
+
+    return render(request, "login.html")
+
+
+# =========================================================
+# CUSTOMER DASHBOARD
+# =========================================================
+
+
+@role_required("customer")
+def customerDashboard(request):
+
+    username = request.session.get("username", "")
+
+    email = request.session.get("user_email", "")
+
+    user_initial = username[:1].upper() if username else "U"
+
+    return render(
+        request,
+        "customerDashboard.html",
+        {
+            "username": username,
+            "user_email": email,
+            "user_initial": user_initial,
+        },
+    )
+
+
+# =========================================================
+# CUSTOMER PAGES
+# =========================================================
+
+
+@role_required("customer")
+def joinqueue(request):
+
+    return render(request, "joinqueue.html")
+
+
+@role_required("customer")
+@ensure_csrf_cookie
+def notify(request):
+
+    return render(request, "notifications.html")
+
+
+@role_required("customer")
+@ensure_csrf_cookie
+def profile(request):
+
+    return render(request, "profile.html")
+
+
+@role_required("customer")
+def queuestatus(request):
+
+    return render(request, "queuestatus.html")
+
+
+# =========================================================
+# STAFF
+# =========================================================
+
+
+@role_required("staff")
+def staffdashboard(request):
+
+    return render(request, "staffdashboard.html")
+
+
+@role_required("staff")
+def staffalert(request):
+
+    return render(request, "staffalerts.html")
+
+
+@role_required("staff")
+def staffcallnext(request):
+
+    return render(request, "staffcallnext.html")
+
+
+@role_required("staff")
+def staffprofile(request):
+
+    return render(request, "staffprofile.html")
+
+
+@role_required("staff")
+def staffqueue(request):
+
+    return render(request, "staffqueue.html")
+
+
+# =========================================================
+# ADMIN
+# =========================================================
+
+
+@role_required("admin")
+def admindashboard(request):
+
+    return render(request, "admindashboard.html")

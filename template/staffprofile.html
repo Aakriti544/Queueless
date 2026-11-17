@@ -1,0 +1,1008 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>QueueLess - Staff Profile</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --navy: #07152f;
+            --sky: #e8f8fc;
+            --white: #fff;
+            --text: #14233d;
+            --muted: #6b7a90;
+            --border: #dce9ed;
+            --red: #b84646;
+            --red-light: #fff0f0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--sky);
+            color: var(--text);
+        }
+
+        /* ================= SIDEBAR ================= */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 245px;
+            height: 100vh;
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 25px 15px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .logo img {
+            width: 190px;
+            max-height: 70px;
+            object-fit: contain;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--muted);
+            margin: 0 15px 12px;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #40516a;
+            padding: 14px 15px;
+            border-radius: 12px;
+            display: flex;
+            gap: 13px;
+            font-size: 14px;
+        }
+
+        .menu a:hover,
+        .menu a.active {
+            background: var(--navy);
+            color: white;
+        }
+
+        .icon {
+            width: 22px;
+            text-align: center;
+        }
+
+        .logout {
+            position: absolute;
+            bottom: 25px;
+            left: 15px;
+            right: 15px;
+        }
+
+        .logout button {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: var(--red);
+            text-decoration: none;
+            padding: 13px 15px;
+            display: block;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 10px;
+        }
+
+        .logout button:hover {
+            background: var(--red-light);
+        }
+
+        /* ================= MAIN ================= */
+
+        .main {
+            margin-left: 245px;
+            padding: 35px 45px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 34px;
+            color: var(--navy);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--muted);
+            margin-top: 7px;
+        }
+
+        .notification {
+            width: 45px;
+            height: 45px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .notification:hover {
+            background: #f5fafb;
+        }
+
+        /* ================= PROFILE CARD ================= */
+
+        .profile-card {
+            max-width: 1100px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(7, 21, 47, .06);
+        }
+
+        .profile-top {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            font-weight: bold;
+        }
+
+        .profile-top h2 {
+            color: var(--navy);
+            margin-bottom: 6px;
+        }
+
+        .profile-top p {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* ================= INFORMATION ================= */
+
+        .info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .field {
+            background: var(--sky);
+            border-radius: 12px;
+            padding: 17px;
+        }
+
+        .field span {
+            display: block;
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+
+        .field strong {
+            font-size: 14px;
+            color: var(--navy);
+            word-break: break-word;
+        }
+
+        /* ================= BUTTONS ================= */
+
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            padding: 13px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .logout-btn:hover {
+            background: #ffe1e1;
+        }
+
+        /* ================= MESSAGE ================= */
+
+        .message {
+            display: none;
+            max-width: 1100px;
+            margin-bottom: 20px;
+            padding: 13px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .message.error {
+            display: block;
+            background: #fff0f0;
+            color: #b42318;
+            border: 1px solid #ffd0d0;
+        }
+
+        .message.success {
+            display: block;
+            background: #effbf3;
+            color: #18753c;
+            border: 1px solid #c8efd5;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media(max-width:700px) {
+
+            .sidebar {
+                top: auto;
+                bottom: 0;
+                width: 100%;
+                height: 65px;
+                padding: 4px;
+                border-right: none;
+                border-top: 1px solid var(--border);
+                z-index: 100;
+            }
+
+            .logo,
+            .menu-title,
+            .logout {
+                display: none;
+            }
+
+            .menu {
+                height: 100%;
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+            .menu a {
+                flex-direction: column;
+                justify-content: center;
+                padding: 5px;
+                font-size: 8px;
+                gap: 2px;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px 13px 90px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .profile-card {
+                padding: 20px;
+            }
+
+            .info {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-top {
+                align-items: flex-start;
+            }
+
+            .avatar {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+
+        }
+
+    </style>
+    <link rel="stylesheet" href="{% static 'css/queueless-refinements.css' %}">
+
+</head>
+
+
+<body>
+
+
+<!-- ================= SIDEBAR ================= -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+
+        <img
+            src="{% static 'logo/logo.png' %}"
+            alt="QueueLess">
+
+    </div>
+
+
+    <div class="menu-title">
+        STAFF MENU
+    </div>
+
+
+    <nav class="menu">
+
+        <a href="/staffdashboard.html/">
+
+            <span class="icon">⌂</span>
+
+            Dashboard
+
+        </a>
+
+
+        <a href="/staffqueue.html/">
+
+            <span class="icon">☷</span>
+
+            Queue
+
+        </a>
+
+
+        <a href="/staffcallnext.html/">
+
+            <span class="icon">▶</span>
+
+            Call Next
+
+        </a>
+
+
+        <a href="/staffalerts.html/">
+
+            <span class="icon">♧</span>
+
+            Alerts
+
+        </a>
+
+
+        <a
+            href="/staffprofile.html/"
+            class="active">
+
+            <span class="icon">●</span>
+
+            Profile
+
+        </a>
+
+    </nav>
+
+
+    <div class="logout">
+
+        <button
+            type="button"
+            onclick="logout()">
+
+            ↪ Logout
+
+        </button>
+
+    </div>
+
+</aside>
+
+
+
+<!-- ================= MAIN ================= -->
+
+<main class="main">
+
+
+    <div class="top">
+
+        <div>
+
+            <h1>My Profile</h1>
+
+            <p class="subtitle">
+
+                View your staff account information.
+
+            </p>
+
+        </div>
+
+
+        <button
+            type="button"
+            class="notification"
+            onclick="openAlerts()">
+
+            🔔
+
+        </button>
+
+    </div>
+
+
+    <!-- MESSAGE -->
+
+    <div
+        id="message"
+        class="message">
+    </div>
+
+
+
+    <!-- ================= PROFILE ================= -->
+
+    <div class="profile-card">
+
+
+        <div class="profile-top">
+
+
+            <div
+                class="avatar"
+                id="profileAvatar">
+
+                S
+
+            </div>
+
+
+            <div>
+
+                <h2 id="profileName">
+
+                    Loading...
+
+                </h2>
+
+
+                <p id="profileRole">
+
+                    Loading staff information...
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+
+        <div class="info">
+
+
+            <div class="field">
+
+                <span>FULL NAME</span>
+
+                <strong id="fullName">
+
+                    Loading...
+
+                </strong>
+
+            </div>
+
+
+            <div class="field">
+
+                <span>STAFF ID</span>
+
+                <strong id="staffId">
+
+                    Loading...
+
+                </strong>
+
+            </div>
+
+
+            <div class="field">
+
+                <span>ROLE</span>
+
+                <strong id="role">
+
+                    Loading...
+
+                </strong>
+
+            </div>
+
+
+            <div class="field">
+
+                <span>ORGANIZATION</span>
+
+                <strong id="organization">
+
+                    Not provided
+
+                </strong>
+
+            </div>
+
+
+            <div class="field">
+
+                <span>BRANCH</span>
+
+                <strong id="branch">
+
+                    Not provided
+
+                </strong>
+
+            </div>
+
+
+            <div class="field">
+
+                <span>EMAIL</span>
+
+                <strong id="email">
+
+                    Loading...
+
+                </strong>
+
+            </div>
+
+
+            <div class="field">
+
+                <span>PHONE</span>
+
+                <strong id="phone">
+
+                    Not provided
+
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+
+        <div class="buttons">
+
+
+            <button
+                type="button"
+                class="btn logout-btn"
+                onclick="logout()">
+
+                LOGOUT
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+</main>
+
+
+
+<script src="{% static 'js/api.js' %}"></script>
+<script>
+
+
+/* =====================================================
+   DJANGO API URLS
+===================================================== */
+
+const CURRENT_USER_URL =
+    "/api/user/current-user/";
+
+const LOGOUT_URL =
+    "/api/user/logout/";
+
+const LOGIN_URL =
+    "/login.html/";
+
+const ALERTS_URL =
+    "/staffalerts.html/";
+
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+function showMessage(text, type = "error") {
+
+    const message =
+        document.getElementById("message");
+
+    message.textContent = text;
+
+    message.className =
+        "message " + type;
+
+
+    setTimeout(() => {
+
+        message.className = "message";
+
+    }, 4000);
+
+}
+
+
+
+/* =====================================================
+   LOAD CURRENT STAFF
+===================================================== */
+
+async function loadCurrentStaff() {
+
+    try {
+
+        const response = await fetch(
+            CURRENT_USER_URL,
+            {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
+        );
+
+
+        const data =
+            await queueLessReadJson(response);
+
+
+        console.log(
+            "Current user response:",
+            data
+        );
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            window.location.href =
+                LOGIN_URL;
+
+            return;
+
+        }
+
+
+        const user =
+            data.user;
+
+
+        /* =========================================
+           CHECK STAFF ROLE
+        ========================================= */
+
+        if (
+            !user ||
+            user.role !== "staff"
+        ) {
+
+            alert(
+                "Access denied. Staff login required."
+            );
+
+            window.location.href =
+                LOGIN_URL;
+
+            return;
+
+        }
+
+
+        /* =========================================
+           USER INFORMATION
+        ========================================= */
+
+        const name =
+            user.username ||
+            user.name ||
+            "Staff Member";
+
+
+        const email =
+            user.email ||
+            "Not Provided";
+
+
+        /*
+         * These fields are displayed only if your
+         * backend provides them.
+         *
+         * Your current User model has username,
+         * email, role, etc.
+         */
+
+        const staffId =
+            user.staffId ||
+            user.staff_id ||
+            ("STF-" +
+                String(user.id || "")
+                .padStart(3, "0"));
+
+
+        const organization =
+            user.organization ||
+            user.organization_name ||
+            "Not Provided";
+
+
+        const branch =
+            user.branch ||
+            user.branch_name ||
+            "Not Provided";
+
+
+        const phone =
+            user.phone ||
+            user.phone_number ||
+            "Not Provided";
+
+
+        /* =========================================
+           DISPLAY NAME
+        ========================================= */
+
+        document.getElementById(
+            "profileName"
+        ).textContent = name;
+
+
+        document.getElementById(
+            "fullName"
+        ).textContent = name;
+
+
+        /* =========================================
+           AVATAR
+        ========================================= */
+
+        document.getElementById(
+            "profileAvatar"
+        ).textContent =
+            name.charAt(0).toUpperCase();
+
+
+        /* =========================================
+           ROLE
+        ========================================= */
+
+        document.getElementById(
+            "role"
+        ).textContent =
+            "Staff";
+
+
+        document.getElementById(
+            "profileRole"
+        ).textContent =
+            "Staff • " + branch;
+
+
+        /* =========================================
+           STAFF ID
+        ========================================= */
+
+        document.getElementById(
+            "staffId"
+        ).textContent =
+            staffId;
+
+
+        /* =========================================
+           ORGANIZATION
+        ========================================= */
+
+        document.getElementById(
+            "organization"
+        ).textContent =
+            organization;
+
+
+        /* =========================================
+           BRANCH
+        ========================================= */
+
+        document.getElementById(
+            "branch"
+        ).textContent =
+            branch;
+
+
+        /* =========================================
+           EMAIL
+        ========================================= */
+
+        document.getElementById(
+            "email"
+        ).textContent =
+            email;
+
+
+        /* =========================================
+           PHONE
+        ========================================= */
+
+        document.getElementById(
+            "phone"
+        ).textContent =
+            phone;
+
+
+    } catch (error) {
+
+        console.error(
+            "Current staff error:",
+            error
+        );
+
+
+        showMessage(
+            "Unable to load staff profile."
+        );
+
+    }
+
+}
+
+
+
+/* =====================================================
+   OPEN ALERTS
+===================================================== */
+
+function openAlerts() {
+
+    window.location.href =
+        ALERTS_URL;
+
+}
+
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+async function logout() {
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to logout?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                LOGOUT_URL,
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        /*
+         * We redirect even if the response
+         * cannot be parsed because the purpose
+         * is to leave the staff session.
+         */
+
+        if (response.ok) {
+
+            console.log(
+                "Staff logged out successfully."
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Logout error:",
+            error
+        );
+
+    }
+
+
+    /*
+     * Do NOT use localStorage here.
+     * Django session is responsible for login.
+     */
+
+    window.location.href =
+        LOGIN_URL;
+
+}
+
+
+
+/* =====================================================
+   START
+===================================================== */
+
+loadCurrentStaff();
+
+</script>
+
+
+</body>
+
+</html>

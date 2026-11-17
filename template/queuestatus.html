@@ -1,0 +1,1513 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>QueueLess — Queue Status</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --sky-light: #eaf7fa;
+        --sky: #d8f0f5;
+        --sky-dark: #b9e1e9;
+
+        --navy: #16233f;
+        --navy-light: #243b63;
+
+        --white: #ffffff;
+        --text: #16233f;
+        --muted: #667580;
+
+        --border: #c7dde2;
+
+        --blue: #2e7183;
+
+        --green: #3b7d74;
+        --green-light: #e1f5ee;
+
+        --yellow: #e8b23a;
+        --yellow-light: #fff5d9;
+
+        --red: #c6473f;
+
+        --shadow: 0 12px 35px rgba(22, 35, 63, 0.09);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+
+        background: var(--sky-light);
+
+        color: var(--text);
+
+        font-family: "Inter", sans-serif;
+      }
+
+      button {
+        font-family: inherit;
+      }
+
+      /* =================================
+           HEADER
+        ================================= */
+
+      .header {
+        height: 78px;
+
+        background: rgba(255, 255, 255, 0.94);
+
+        border-bottom: 1px solid var(--border);
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        padding: 0 55px;
+
+        position: sticky;
+
+        top: 0;
+
+        z-index: 50;
+      }
+
+      .logo img {
+        width: 175px;
+
+        height: auto;
+
+        display: block;
+      }
+
+      .back-btn {
+        border: none;
+
+        background: transparent;
+
+        color: var(--navy);
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 8px;
+
+        padding: 9px 12px;
+
+        border-radius: 8px;
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition: 0.2s;
+      }
+
+      .back-btn:hover {
+        background: var(--sky);
+      }
+
+      /* =================================
+           CONTENT
+        ================================= */
+
+      .content {
+        width: 100%;
+
+        max-width: 1050px;
+
+        margin: auto;
+
+        padding: 45px 25px 60px;
+      }
+
+      .intro {
+        text-align: center;
+
+        margin-bottom: 30px;
+      }
+
+      .intro h1 {
+        font-family: "Playfair Display", serif;
+
+        font-size: 34px;
+
+        margin-bottom: 8px;
+      }
+
+      .intro p {
+        color: var(--muted);
+
+        font-size: 13px;
+      }
+
+      /* =================================
+           LOADING
+        ================================= */
+
+      .loading {
+        text-align: center;
+
+        padding: 40px;
+
+        color: var(--muted);
+
+        font-size: 13px;
+      }
+
+      /* =================================
+           STATUS CARD
+        ================================= */
+
+      .status-card {
+        background: var(--white);
+
+        border: 1px solid var(--border);
+
+        border-radius: 18px;
+
+        box-shadow: var(--shadow);
+
+        overflow: hidden;
+      }
+
+      /* =================================
+           STATUS HEADER
+        ================================= */
+
+      .status-header {
+        background: var(--navy);
+
+        color: var(--white);
+
+        padding: 25px 30px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+      }
+
+      .bank-info {
+        display: flex;
+
+        align-items: center;
+
+        gap: 13px;
+      }
+
+      .bank-icon {
+        width: 43px;
+
+        height: 43px;
+
+        background: rgba(255, 255, 255, 0.1);
+
+        border: 1px solid rgba(255, 255, 255, 0.12);
+
+        border-radius: 10px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+      }
+
+      .bank-name {
+        font-size: 14px;
+
+        font-weight: 600;
+
+        margin-bottom: 4px;
+      }
+
+      .branch {
+        font-size: 11px;
+
+        opacity: 0.65;
+      }
+
+      .waiting-badge {
+        background: rgba(255, 255, 255, 0.12);
+
+        border: 1px solid rgba(255, 255, 255, 0.15);
+
+        border-radius: 20px;
+
+        padding: 7px 12px;
+
+        font-size: 11px;
+
+        font-weight: 600;
+      }
+
+      .status-dot {
+        display: inline-block;
+
+        width: 7px;
+
+        height: 7px;
+
+        background: #70d3a5;
+
+        border-radius: 50%;
+
+        margin-right: 5px;
+      }
+
+      /* =================================
+           TOKEN
+        ================================= */
+
+      .token-section {
+        text-align: center;
+
+        padding: 35px 30px 30px;
+      }
+
+      .token-label {
+        color: var(--muted);
+
+        font-size: 11px;
+
+        text-transform: uppercase;
+
+        letter-spacing: 1px;
+
+        margin-bottom: 6px;
+      }
+
+      .token-number {
+        font-family: "Playfair Display", serif;
+
+        font-size: 62px;
+
+        font-weight: 700;
+
+        color: var(--navy);
+
+        line-height: 1.1;
+
+        margin-bottom: 7px;
+      }
+
+      .service-name {
+        color: var(--muted);
+
+        font-size: 12px;
+      }
+
+      /* =================================
+           PROGRESS
+        ================================= */
+
+      .progress-section {
+        padding: 0 50px 35px;
+      }
+
+      .progress-info {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        margin-bottom: 9px;
+      }
+
+      .progress-label {
+        color: var(--muted);
+
+        font-size: 11px;
+      }
+
+      .progress-position {
+        font-size: 11px;
+
+        font-weight: 600;
+      }
+
+      .progress-bar {
+        width: 100%;
+
+        height: 9px;
+
+        background: var(--sky);
+
+        border-radius: 20px;
+
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        width: 0%;
+
+        height: 100%;
+
+        background: var(--blue);
+
+        border-radius: 20px;
+
+        transition: width 0.5s ease;
+      }
+
+      /* =================================
+           STATS
+        ================================= */
+
+      .stats {
+        display: grid;
+
+        grid-template-columns: repeat(4, 1fr);
+
+        gap: 14px;
+
+        padding: 0 30px 30px;
+      }
+
+      .stat {
+        background: var(--sky-light);
+
+        border: 1px solid var(--border);
+
+        border-radius: 11px;
+
+        padding: 17px 12px;
+
+        text-align: center;
+      }
+
+      .stat-label {
+        display: block;
+
+        color: var(--muted);
+
+        font-size: 10px;
+
+        margin-bottom: 6px;
+      }
+
+      .stat-value {
+        font-family: "Playfair Display", serif;
+
+        font-size: 23px;
+
+        font-weight: 700;
+      }
+
+      /* =================================
+           NOTIFICATION
+        ================================= */
+
+      .notification {
+        margin: 0 30px 30px;
+
+        background: var(--yellow-light);
+
+        border: 1px solid #f0d98d;
+
+        border-radius: 12px;
+
+        padding: 15px;
+
+        display: flex;
+
+        align-items: flex-start;
+
+        gap: 12px;
+      }
+
+      .notification-icon {
+        width: 35px;
+
+        height: 35px;
+
+        flex-shrink: 0;
+
+        background: var(--white);
+
+        border-radius: 9px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        color: var(--yellow);
+      }
+
+      .notification-title {
+        font-size: 12px;
+
+        font-weight: 600;
+
+        margin-bottom: 3px;
+      }
+
+      .notification-text {
+        color: var(--muted);
+
+        font-size: 11px;
+
+        line-height: 1.5;
+      }
+
+      /* =================================
+           ACTIONS
+        ================================= */
+
+      .actions {
+        display: flex;
+
+        gap: 12px;
+
+        padding: 0 30px 30px;
+      }
+
+      .action-btn {
+        flex: 1;
+
+        height: 48px;
+
+        border-radius: 9px;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition: 0.2s;
+      }
+
+      .dashboard-btn {
+        border: 1px solid var(--border);
+
+        background: var(--white);
+
+        color: var(--navy);
+      }
+
+      .dashboard-btn:hover {
+        background: var(--sky);
+      }
+
+      .leave-btn {
+        border: 1px solid #e3b8b4;
+
+        background: #fff7f6;
+
+        color: #b3443d;
+      }
+
+      .leave-btn:hover {
+        background: #fce8e6;
+      }
+
+      /* =================================
+           DETAILS
+        ================================= */
+
+      .details {
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 18px;
+
+        margin-top: 25px;
+      }
+
+      .detail-card {
+        background: var(--white);
+
+        border: 1px solid var(--border);
+
+        border-radius: 14px;
+
+        padding: 22px;
+
+        box-shadow: var(--shadow);
+      }
+
+      .detail-title {
+        font-size: 15px;
+
+        font-weight: 600;
+
+        margin-bottom: 17px;
+      }
+
+      .detail-row {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        padding: 10px 0;
+
+        border-bottom: 1px solid #e7eef0;
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        color: var(--muted);
+
+        font-size: 11px;
+      }
+
+      .detail-value {
+        font-size: 11px;
+
+        font-weight: 600;
+      }
+
+      /* =================================
+           LIVE UPDATE
+        ================================= */
+
+      .live-update {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 7px;
+
+        color: var(--muted);
+
+        font-size: 10px;
+
+        margin-top: 18px;
+      }
+
+      .live-dot {
+        width: 6px;
+
+        height: 6px;
+
+        background: var(--green);
+
+        border-radius: 50%;
+
+        animation: pulse 1.5s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+
+        50% {
+          opacity: 0.35;
+        }
+
+        100% {
+          opacity: 1;
+        }
+      }
+
+      /* =================================
+           MODAL
+        ================================= */
+
+      .modal-overlay {
+        position: fixed;
+
+        inset: 0;
+
+        background: rgba(22, 35, 63, 0.42);
+
+        display: none;
+
+        align-items: center;
+
+        justify-content: center;
+
+        padding: 20px;
+
+        z-index: 100;
+      }
+
+      .modal-overlay.show {
+        display: flex;
+      }
+
+      .modal {
+        background: var(--white);
+
+        width: 100%;
+
+        max-width: 390px;
+
+        border-radius: 16px;
+
+        padding: 28px;
+
+        text-align: center;
+
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal h2 {
+        font-family: "Playfair Display", serif;
+
+        font-size: 25px;
+
+        margin-bottom: 8px;
+      }
+
+      .modal p {
+        color: var(--muted);
+
+        font-size: 12px;
+
+        line-height: 1.6;
+
+        margin-bottom: 20px;
+      }
+
+      .modal-actions {
+        display: flex;
+
+        gap: 10px;
+      }
+
+      .modal-actions button {
+        flex: 1;
+
+        height: 45px;
+
+        border-radius: 8px;
+
+        cursor: pointer;
+
+        font-size: 12px;
+
+        font-weight: 600;
+      }
+
+      .cancel-btn {
+        background: var(--white);
+
+        border: 1px solid var(--border);
+
+        color: var(--navy);
+      }
+
+      .confirm-btn {
+        background: var(--red);
+
+        border: none;
+
+        color: white;
+      }
+
+      /* =================================
+           ERROR
+        ================================= */
+
+      .error-message {
+        display: none;
+
+        text-align: center;
+
+        background: #fff7f6;
+
+        border: 1px solid #e3b8b4;
+
+        color: #b3443d;
+
+        border-radius: 10px;
+
+        padding: 15px;
+
+        margin-bottom: 20px;
+
+        font-size: 12px;
+      }
+
+      /* =================================
+           RESPONSIVE
+        ================================= */
+
+      @media (max-width: 750px) {
+        .header {
+          padding: 0 22px;
+        }
+
+        .content {
+          padding: 35px 18px 45px;
+        }
+
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .details {
+          grid-template-columns: 1fr;
+        }
+
+        .progress-section {
+          padding-left: 30px;
+
+          padding-right: 30px;
+        }
+      }
+
+      @media (max-width: 500px) {
+        .header {
+          height: 70px;
+
+          padding: 0 15px;
+        }
+
+        .logo img {
+          width: 145px;
+        }
+
+        .back-btn span {
+          display: none;
+        }
+
+        .content {
+          padding: 27px 14px 40px;
+        }
+
+        .intro h1 {
+          font-size: 28px;
+        }
+
+        .status-header {
+          padding: 20px;
+        }
+
+        .token-section {
+          padding: 28px 20px;
+        }
+
+        .token-number {
+          font-size: 52px;
+        }
+
+        .progress-section {
+          padding-left: 20px;
+
+          padding-right: 20px;
+        }
+
+        .stats {
+          padding-left: 20px;
+
+          padding-right: 20px;
+        }
+
+        .notification {
+          margin-left: 20px;
+
+          margin-right: 20px;
+        }
+
+        .actions {
+          padding-left: 20px;
+
+          padding-right: 20px;
+
+          flex-direction: column;
+        }
+
+        .detail-card {
+          padding: 18px;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="{% static 'css/queueless-refinements.css' %}">
+  </head>
+
+  <body>
+
+    <!-- =========================================
+     HEADER
+========================================= -->
+
+    <header class="header">
+      <div class="logo">
+        <img src="{% static 'logo/logo.png' %}" alt="QueueLess Logo" />
+      </div>
+
+      <button class="back-btn" onclick="goDashboard()">
+        <svg
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M19 12H5" />
+
+          <path d="M12 19l-7-7 7-7" />
+        </svg>
+
+        <span> Back to Dashboard </span>
+      </button>
+    </header>
+
+    <!-- =========================================
+     MAIN
+========================================= -->
+
+    <main class="content">
+      <div class="intro">
+        <h1>Your Queue Status</h1>
+
+        <p>Track your position and estimated waiting time in real time.</p>
+      </div>
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <div class="loading" id="loading">Loading your queue...</div>
+
+      <!-- =====================================
+         STATUS CARD
+    ====================================== -->
+
+      <section class="status-card" id="statusCard" style="display: none">
+        <!-- HEADER -->
+
+        <div class="status-header">
+          <div class="bank-info">
+            <div class="bank-icon">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+              >
+                <path d="M3 10h18" />
+
+                <path d="M5 10v9" />
+
+                <path d="M9 10v9" />
+
+                <path d="M15 10v9" />
+
+                <path d="M19 10v9" />
+
+                <path d="M3 19h18" />
+
+                <path d="M12 4l9 6H3l9-6z" />
+              </svg>
+            </div>
+
+            <div>
+              <div class="bank-name" id="queueOrgName">Organization</div>
+
+              <div class="branch" id="queueOrgAddress"></div>
+            </div>
+          </div>
+
+          <div class="waiting-badge">
+            <span class="status-dot" id="statusDot"></span>
+
+            <span id="statusText"> Waiting </span>
+          </div>
+        </div>
+
+        <!-- TOKEN -->
+
+        <div class="token-section">
+          <div class="token-label">Your Token</div>
+
+          <div class="token-number" id="tokenNumber">—</div>
+
+          <div class="service-name" id="serviceName">—</div>
+        </div>
+
+        <!-- PROGRESS -->
+
+        <div class="progress-section">
+          <div class="progress-info">
+            <span class="progress-label"> Queue Position </span>
+
+            <span class="progress-position" id="progressPosition"> — </span>
+          </div>
+
+        </div>
+
+        <!-- STATS -->
+
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-label"> Your Position </span>
+
+            <span class="stat-value" id="position"> — </span>
+          </div>
+
+          <div class="stat">
+            <span class="stat-label"> People Ahead </span>
+
+            <span class="stat-value" id="peopleAhead"> — </span>
+          </div>
+
+          <div class="stat">
+            <span class="stat-label"> Estimated Wait </span>
+
+            <span class="stat-value" id="estimatedWait"> — </span>
+          </div>
+          <div class="stat">
+            <span class="stat-label"> Estimated Turn </span>
+            <span class="stat-value" id="estimatedTurnAt"> — </span>
+          </div>
+          <div class="stat">
+            <span class="stat-label"> Last Updated </span>
+            <span class="stat-value" id="estimateLastUpdated"> — </span>
+          </div>
+        </div>
+        <p class="estimate-disclaimer">Waiting times and turn times are estimates and are not guaranteed.</p>
+
+        <!-- NOTIFICATION -->
+
+        <div class="notification">
+          <div class="notification-icon">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+
+              <path d="M10 21h4" />
+            </svg>
+          </div>
+
+          <div>
+            <div class="notification-title">Your turn is approaching</div>
+
+            <div class="notification-text">
+              There <span id="notificationVerb">are</span> currently
+
+              <strong id="notificationPeople"> 0 </strong>
+
+              <span id="notificationPerson">people</span> ahead of you.
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+
+        <div class="actions">
+          <button class="action-btn dashboard-btn" onclick="goDashboard()">
+            Back to Dashboard
+          </button>
+
+          <button class="action-btn leave-btn" onclick="showLeaveModal()">
+            Leave Queue
+          </button>
+        </div>
+      </section>
+
+      <!-- =====================================
+         DETAILS
+    ====================================== -->
+
+      <div class="details" id="details" style="display: none">
+        <div class="detail-card">
+          <div class="detail-title">Queue Information</div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Bank </span>
+
+            <span class="detail-value" id="detailOrgName">—</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Branch </span>
+
+            <span class="detail-value" id="detailOrgAddress">—</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Service </span>
+
+            <span class="detail-value" id="detailService"> — </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Token </span>
+
+            <span class="detail-value" id="detailToken"> — </span>
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-title">What happens next?</div>
+
+          <div class="detail-row">
+            <span class="detail-label"> 1. Queue moves </span>
+
+            <span class="detail-value"> Automatic </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> 2. Position updates </span>
+
+            <span class="detail-value"> Live </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> 3. 3 tokens away </span>
+
+            <span class="detail-value"> Notify </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> 4. Your turn </span>
+
+            <span class="detail-value"> Serve </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="live-update">
+        <span class="live-dot"></span>
+
+        Queue status is updating
+      </div>
+    </main>
+
+    <!-- =========================================
+     LEAVE MODAL
+========================================= -->
+
+    <div class="modal-overlay" id="leaveModal">
+      <div class="modal">
+        <h2>Leave the queue?</h2>
+
+        <p>
+          If you leave now, your token will be cancelled and you will need to
+          join the queue again.
+        </p>
+
+        <div class="modal-actions">
+          <button class="cancel-btn" onclick="closeLeaveModal()">
+            Stay in Queue
+          </button>
+
+          <button class="confirm-btn" onclick="leaveQueue()">
+            Leave Queue
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'js/api.js' %}"></script>
+<script>
+      /* ============================================================
+   DJANGO URL
+============================================================ */
+
+      const dashboardUrl = "{% url 'customerDashboard' %}";
+
+      /* ============================================================
+   API URLS
+============================================================ */
+
+      const queueStatusUrl = "{% url 'my_queue_api' %}";
+
+      const leaveQueueUrl = "{% url 'leave_queue_api' %}";
+
+      /* ============================================================
+   CSRF TOKEN
+============================================================ */
+
+      function getCookie(name) {
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1),
+              );
+
+              break;
+            }
+          }
+        }
+
+        return cookieValue;
+      }
+
+      const csrftoken = getCookie("csrftoken");
+
+      /* ============================================================
+   BACK TO DASHBOARD
+============================================================ */
+
+      function goDashboard() {
+        window.location.href = dashboardUrl;
+      }
+
+      /* ============================================================
+   SERVICE NAME
+============================================================ */
+
+      function getServiceName(service) {
+        return service || "Service";
+      }
+
+      /* ============================================================
+   LOAD QUEUE FROM DJANGO
+============================================================ */
+
+      let queueStatusRequestActive = false;
+      async function loadQueueStatus() {
+        if (queueStatusRequestActive) return;
+        queueStatusRequestActive = true;
+        try {
+          const response = await fetch(queueStatusUrl, {
+            method: "GET",
+
+            credentials: "same-origin",
+
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          const data = await queueLessReadJson(response);
+
+          /* ----------------------------------------------------
+           NOT LOGGED IN
+        ---------------------------------------------------- */
+
+          if (response.status === 401) {
+            window.location.href = "/login.html/";
+
+            return;
+          }
+
+          /* ----------------------------------------------------
+           API ERROR
+        ---------------------------------------------------- */
+
+          if (!response.ok) {
+            showError(data.message || "Unable to load queue.");
+
+            return;
+          }
+
+          /* ----------------------------------------------------
+           NO ACTIVE QUEUE
+        ---------------------------------------------------- */
+
+          if (data.success && data.has_queue === false) {
+            showError("You are not currently in a queue.");
+
+            document.getElementById("loading").style.display = "none";
+
+            return;
+          }
+
+          /* ----------------------------------------------------
+           QUEUE FOUND
+        ---------------------------------------------------- */
+
+          if (data.success && data.has_queue && data.queue) {
+            displayQueue(data.queue);
+          }
+        } catch (error) {
+          console.error("Queue status error:", error);
+
+          showError("Unable to connect to the server.");
+        } finally {
+          queueStatusRequestActive = false;
+        }
+      }
+
+      let lastQueueNotificationId = null;
+      async function checkQueueNotifications() {
+        try {
+          const response = await fetch("/api/user/customer-notifications/", {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" },
+          });
+          const data = await queueLessReadJson(response);
+          if (!response.ok || !Array.isArray(data.notifications)) return;
+          const newestId = data.notifications[0]?.id ?? null;
+          if (lastQueueNotificationId !== null && newestId !== null && newestId !== lastQueueNotificationId) {
+            loadQueueStatus();
+          }
+          lastQueueNotificationId = newestId;
+        } catch (error) {
+          console.error("Queue notification refresh check failed:", error);
+        }
+      }
+
+      /* ============================================================
+   DISPLAY QUEUE
+============================================================ */
+
+      function displayQueue(queue) {
+        const token = queue.token || "—";
+
+        const service = getServiceName(queue.service);
+        const org = queue.organization || {};
+        document.getElementById("queueOrgName").textContent = org.name || "Organization";
+        document.getElementById("queueOrgAddress").textContent = org.address || "";
+        document.getElementById("detailOrgName").textContent = org.name || "—";
+        document.getElementById("detailOrgAddress").textContent = org.address || "—";
+
+        const position = Number(queue.position || 0);
+
+        const peopleAhead = Number(queue.peopleAhead || 0);
+
+        const estimatedWait = queue.estimatedWait || "0 min";
+        const status = queue.status || "waiting";
+
+        /* --------------------------------------------------------
+       TOKEN
+    -------------------------------------------------------- */
+
+        document.getElementById("tokenNumber").textContent = token;
+
+        document.getElementById("detailToken").textContent = token;
+
+        /* --------------------------------------------------------
+       SERVICE
+    -------------------------------------------------------- */
+
+        document.getElementById("serviceName").textContent = service;
+
+        document.getElementById("detailService").textContent = service;
+
+        /* --------------------------------------------------------
+       PEOPLE AHEAD
+    -------------------------------------------------------- */
+
+        document.getElementById("peopleAhead").textContent = peopleAhead;
+
+        document.getElementById("notificationPeople").textContent = peopleAhead;
+        document.getElementById("notificationVerb").textContent =
+          peopleAhead === 1 ? "is" : "are";
+        document.getElementById("notificationPerson").textContent =
+          peopleAhead === 1 ? "person" : "people";
+
+        /* --------------------------------------------------------
+       WAIT
+    -------------------------------------------------------- */
+
+        document.getElementById("estimatedWait").textContent =
+          estimatedWait.replace(" min", "m");
+        const expectedTurnAt = queue.estimatedTurnAt ? new Date(queue.estimatedTurnAt) : null;
+        document.getElementById("estimatedTurnAt").textContent =
+          status === "waiting" && expectedTurnAt && !Number.isNaN(expectedTurnAt.getTime())
+            ? expectedTurnAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kathmandu" })
+            : "—";
+        const estimateLastUpdated = queue.lastUpdatedAt ? new Date(queue.lastUpdatedAt) : null;
+        document.getElementById("estimateLastUpdated").textContent =
+          estimateLastUpdated && !Number.isNaN(estimateLastUpdated.getTime())
+            ? estimateLastUpdated.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kathmandu" })
+            : "—";
+
+        /* --------------------------------------------------------
+       STATUS
+    -------------------------------------------------------- */
+
+        const statusText = document.getElementById("statusText");
+
+        if (status === "waiting") {
+          statusText.textContent = "Waiting";
+        } else if (status === "called") {
+          statusText.textContent = "Called";
+        } else if (status === "serving") {
+          statusText.textContent = "Serving";
+        } else {
+          statusText.textContent = status;
+        }
+
+        /* --------------------------------------------------------
+       PROGRESS
+    -------------------------------------------------------- */
+
+        document.getElementById("progressPosition").textContent =
+          status === "waiting" ? "Position " + position : "Status: " + statusText.textContent;
+
+        document.getElementById("position").textContent =
+          status === "waiting" ? position : statusText.textContent;
+
+        /* --------------------------------------------------------
+       SHOW CONTENT
+    -------------------------------------------------------- */
+
+        document.getElementById("loading").style.display = "none";
+
+        document.getElementById("errorMessage").style.display = "none";
+
+        document.getElementById("statusCard").style.display = "block";
+
+        document.getElementById("details").style.display = "grid";
+      }
+
+      /* ============================================================
+   ERROR
+============================================================ */
+
+      function showError(message) {
+        document.getElementById("loading").style.display = "none";
+
+        const errorBox = document.getElementById("errorMessage");
+
+        errorBox.textContent = message;
+
+        errorBox.style.display = "block";
+      }
+
+      /* ============================================================
+   LEAVE MODAL
+============================================================ */
+
+      function showLeaveModal() {
+        document.getElementById("leaveModal").classList.add("show");
+      }
+
+      function closeLeaveModal() {
+        document.getElementById("leaveModal").classList.remove("show");
+      }
+
+      /* 
+   LEAVE QUEUE
+ */
+
+      async function leaveQueue() {
+        try {
+          const response = await fetch(leaveQueueUrl, {
+            method: "POST",
+
+            credentials: "same-origin",
+
+            headers: {
+              "Content-Type": "application/json",
+
+              "X-CSRFToken": csrftoken,
+            },
+
+            body: JSON.stringify({}),
+          });
+
+          const data = await queueLessReadJson(response);
+
+          if (response.status === 401) {
+            window.location.href = "/login.html/";
+
+            return;
+          }
+
+          if (!response.ok) {
+            alert(data.message || "Unable to leave queue.");
+
+            return;
+          }
+
+          if (data.success) {
+            closeLeaveModal();
+
+            /*
+             * IMPORTANT:
+             * No localStorage is used.
+             *
+             * Django has already marked the
+             * queue as cancelled.
+             */
+
+            window.location.href = dashboardUrl;
+          }
+        } catch (error) {
+          console.error("Leave queue error:", error);
+
+          alert("Unable to connect to the server.");
+        }
+      }
+
+      /* ============================================================
+   CLOSE MODAL WHEN CLICKING OUTSIDE
+============================================================ */
+
+      document
+        .getElementById("leaveModal")
+        .addEventListener("click", function (event) {
+          if (event.target === this) {
+            closeLeaveModal();
+          }
+        });
+
+      /* ============================================================
+   INITIAL LOAD
+============================================================ */
+
+      loadQueueStatus();
+      checkQueueNotifications();
+
+      /* ============================================================
+   LIVE UPDATE
+===============================================================
+   
+   Every 180 seconds the page refreshes the CURRENT
+   customer's queue.
+
+   There is NO localStorage queue anymore.
+
+============================================================ */
+
+      setInterval(loadQueueStatus, 180000);
+      setInterval(checkQueueNotifications, 10000);
+      window.addEventListener("focus", loadQueueStatus);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") loadQueueStatus();
+      });
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data?.type === "queueless-queue-update") loadQueueStatus();
+        });
+      }
+    </script>
+  </body>
+</html>

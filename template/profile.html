@@ -1,0 +1,827 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>QueueLess — My Profile</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --sky-light: #eaf7fa;
+        --sky: #d8f0f5;
+        --sky-dark: #b9e1e9;
+
+        --navy: #16233f;
+        --navy-light: #243b63;
+
+        --white: #ffffff;
+
+        --text: #16233f;
+        --muted: #667580;
+
+        --border: #c7dde2;
+
+        --blue: #2e7183;
+
+        --green: #3b7d74;
+        --green-light: #e1f5ee;
+
+        --shadow: 0 12px 35px rgba(22, 35, 63, 0.09);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+
+        background: var(--sky-light);
+
+        color: var(--text);
+
+        font-family: "Inter", sans-serif;
+      }
+
+      /* =========================================
+           HEADER
+        ========================================= */
+
+      .header {
+        height: 78px;
+
+        background: rgba(255, 255, 255, 0.95);
+
+        border-bottom: 1px solid var(--border);
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        padding: 0 55px;
+      }
+
+      .logo img {
+        width: 175px;
+
+        height: auto;
+
+        display: block;
+      }
+
+      .back-btn {
+        border: none;
+
+        background: transparent;
+
+        color: var(--navy);
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 8px;
+
+        padding: 9px 12px;
+
+        border-radius: 8px;
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition: 0.2s;
+      }
+
+      .back-btn:hover {
+        background: var(--sky);
+      }
+
+      /* =========================================
+           CONTENT
+        ========================================= */
+
+      .content {
+        max-width: 850px;
+
+        margin: auto;
+
+        padding: 45px 25px 60px;
+      }
+
+      .intro {
+        text-align: center;
+
+        margin-bottom: 30px;
+      }
+
+      .intro h1 {
+        font-family: "Playfair Display", serif;
+
+        font-size: 34px;
+
+        margin-bottom: 8px;
+      }
+
+      .intro p {
+        color: var(--muted);
+
+        font-size: 13px;
+      }
+
+      /* =========================================
+           PROFILE CARD
+        ========================================= */
+
+      .profile-card {
+        background: var(--white);
+
+        border: 1px solid var(--border);
+
+        border-radius: 17px;
+
+        box-shadow: var(--shadow);
+
+        overflow: hidden;
+      }
+
+      /* =========================================
+           PROFILE TOP
+        ========================================= */
+
+      .profile-top {
+        background: var(--navy);
+
+        color: var(--white);
+
+        padding: 30px;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 20px;
+      }
+
+      .avatar {
+        width: 75px;
+
+        height: 75px;
+
+        border-radius: 50%;
+
+        background: var(--sky);
+
+        color: var(--navy);
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        font-family: "Playfair Display", serif;
+
+        font-size: 29px;
+
+        font-weight: 700;
+
+        flex-shrink: 0;
+      }
+
+      .profile-name {
+        font-family: "Playfair Display", serif;
+
+        font-size: 25px;
+
+        margin-bottom: 5px;
+      }
+
+      .profile-role {
+        font-size: 11px;
+
+        opacity: 0.7;
+      }
+
+      /* =========================================
+           DETAILS
+        ========================================= */
+
+      .details {
+        padding: 25px 30px;
+      }
+
+      .section-title {
+        font-size: 15px;
+
+        font-weight: 600;
+
+        margin-bottom: 18px;
+      }
+
+      .detail-row {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        padding: 15px 0;
+
+        border-bottom: 1px solid #e7eef0;
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        color: var(--muted);
+
+        font-size: 11px;
+      }
+
+      .detail-value {
+        font-size: 12px;
+
+        font-weight: 600;
+
+        text-align: right;
+      }
+
+      /* =========================================
+           ACCOUNT STATUS
+        ========================================= */
+
+      .account-status {
+        margin: 0 30px 25px;
+
+        padding: 15px;
+
+        background: var(--green-light);
+
+        border: 1px solid #c5e6dc;
+
+        border-radius: 11px;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 11px;
+      }
+
+      .status-icon {
+        width: 32px;
+
+        height: 32px;
+
+        border-radius: 50%;
+
+        background: white;
+
+        color: var(--green);
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        flex-shrink: 0;
+      }
+
+      .status-title {
+        font-size: 11px;
+
+        font-weight: 600;
+
+        margin-bottom: 3px;
+      }
+
+      .status-text {
+        font-size: 10px;
+
+        color: var(--muted);
+      }
+
+      /* =========================================
+           BUTTONS
+        ========================================= */
+
+      .actions {
+        display: flex;
+
+        gap: 12px;
+
+        padding: 0 30px 30px;
+      }
+
+      .action-btn {
+        flex: 1;
+
+        height: 47px;
+
+        border-radius: 9px;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition: 0.2s;
+      }
+
+      .dashboard-btn {
+        background: var(--white);
+
+        border: 1px solid var(--border);
+
+        color: var(--navy);
+      }
+
+      .dashboard-btn:hover {
+        background: var(--sky);
+      }
+
+      .logout-btn {
+        background: #fff7f6;
+
+        border: 1px solid #e3b8b4;
+
+        color: #b3443d;
+      }
+
+      .logout-btn:hover {
+        background: #fce8e6;
+      }
+
+      /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+      @media (max-width: 600px) {
+        .header {
+          height: 70px;
+
+          padding: 0 15px;
+        }
+
+        .logo img {
+          width: 145px;
+        }
+
+        .back-btn span {
+          display: none;
+        }
+
+        .content {
+          padding: 30px 15px 45px;
+        }
+
+        .intro h1 {
+          font-size: 28px;
+        }
+
+        .profile-top {
+          padding: 25px 20px;
+        }
+
+        .avatar {
+          width: 62px;
+
+          height: 62px;
+
+          font-size: 24px;
+        }
+
+        .profile-name {
+          font-size: 21px;
+        }
+
+        .details {
+          padding: 22px 20px;
+        }
+
+        .account-status {
+          margin-left: 20px;
+
+          margin-right: 20px;
+        }
+
+        .actions {
+          padding-left: 20px;
+
+          padding-right: 20px;
+
+          flex-direction: column;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="{% static 'css/queueless-refinements.css' %}">
+  </head>
+
+  <body>
+    <!-- =========================================
+     HEADER
+========================================= -->
+
+    <header class="header">
+      <div class="logo">
+        <img src="{% static 'logo/logo.png' %}" alt="QueueLess Logo" />
+      </div>
+
+      <button class="back-btn" onclick="goDashboard()">
+        ←
+
+        <span> Back to Dashboard </span>
+      </button>
+    </header>
+
+    <!-- =========================================
+     MAIN CONTENT
+========================================= -->
+
+    <main class="content">
+      <div class="intro">
+        <h1>My Profile</h1>
+
+        <p>Manage and view your QueueLess account information.</p>
+      </div>
+
+      <section class="profile-card">
+        <!-- =====================================
+             PROFILE HEADER
+        ====================================== -->
+
+        <div class="profile-top">
+          <div class="avatar" id="avatar">U</div>
+
+          <div>
+            <div class="profile-name" id="profileName">Loading...</div>
+
+            <div class="profile-role" id="profileRole">Customer Account</div>
+          </div>
+        </div>
+
+        <!-- =====================================
+             PERSONAL INFORMATION
+        ====================================== -->
+
+        <div class="details">
+          <div class="section-title">Personal Information</div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Full Name </span>
+
+            <span class="detail-value" id="fullName"> Loading... </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Email </span>
+
+            <span class="detail-value" id="email"> Loading... </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Role </span>
+
+            <span class="detail-value" id="userRole"> Loading... </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Organization </span>
+
+            <span class="detail-value" id="profileOrganization">Loading…</span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label"> Address </span>
+
+            <span class="detail-value" id="profileAddress">—</span>
+          </div>
+        </div>
+
+        <!-- =====================================
+             ACCOUNT STATUS
+        ====================================== -->
+
+        <div class="account-status">
+          <div class="status-icon">✓</div>
+
+          <div>
+            <div class="status-title">Account Active</div>
+
+            <div class="status-text">
+              Your QueueLess customer account is active.
+            </div>
+          </div>
+        </div>
+
+        <form id="profileForm" style="margin:20px 0;display:grid;gap:10px">
+          <label for="editUsername">Display name</label>
+          <input id="editUsername" maxlength="150" required style="padding:12px;border:1px solid #c7dde2;border-radius:8px">
+          <button type="submit" class="action-btn dashboard-btn">Save profile</button>
+          <p id="profileMessage" role="status"></p>
+        </form>
+
+        <!-- =====================================
+             ACTION BUTTONS
+        ====================================== -->
+
+        <div class="actions">
+          <button class="action-btn dashboard-btn" onclick="goDashboard()">
+            Back to Dashboard
+          </button>
+
+          <button class="action-btn logout-btn" onclick="logout()">
+            Logout
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <script src="{% static 'js/api.js' %}"></script>
+<script>
+      /* ============================================================
+   LOAD LOGGED-IN CUSTOMER
+============================================================ */
+
+      async function loadUserProfile() {
+        try {
+          const catalogResponse = await fetch("/api/user/customer-services/", {credentials:"same-origin"});
+          const catalog = await queueLessReadJson(catalogResponse);
+          document.getElementById("profileOrganization").textContent = catalog.organization?.name || "—";
+          document.getElementById("profileAddress").textContent = catalog.organization?.address || "—";
+          const response = await fetch("/api/user/customer-profile/", {
+            method: "GET",
+
+            credentials: "same-origin",
+
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          const data = await queueLessReadJson(response);
+
+          console.log("Current user:", data);
+
+          /* =========================================
+           CHECK USER
+        ========================================= */
+
+          if (!response.ok || !data.authenticated || !data.user) {
+            const message = data.message || "Unable to load your profile. Please try again.";
+            document.getElementById("profileName").textContent = "Profile unavailable";
+            document.getElementById("fullName").textContent = message;
+            document.getElementById("email").textContent = "—";
+            document.getElementById("userRole").textContent = "—";
+            document.getElementById("profileRole").textContent = "Customer Account";
+            document.getElementById("profileMessage").textContent = message;
+            if (response.status === 401) window.location.replace("/login.html/");
+
+            return;
+          }
+
+          /* =========================================
+           USER DATA
+        ========================================= */
+
+          const user = data.user;
+          document.getElementById("editUsername").value = user.username;
+
+          const username = user.username || "Customer";
+
+          const email = user.email || "No email";
+
+          const role = user.role || "customer";
+
+          /* =========================================
+           FIRST NAME
+           
+           Example:
+           
+           Prakriti Neupane
+                    ↓
+                Prakriti
+        ========================================= */
+
+          const firstName = username.trim().split(/\s+/)[0] || "Customer";
+
+          /* =========================================
+           FIRST LETTER
+           
+           Example:
+           
+           Prakriti
+              ↓
+              P
+        ========================================= */
+
+          const firstLetter = firstName.charAt(0).toUpperCase();
+
+          /* =========================================
+           FORMAT ROLE
+        ========================================= */
+
+          const formattedRole = role.charAt(0).toUpperCase() + role.slice(1);
+
+          /* =========================================
+           PROFILE NAME
+           
+           Prakriti Neupane
+           ↓
+           Prakriti
+        ========================================= */
+
+          const profileName = document.getElementById("profileName");
+
+          if (profileName) {
+            profileName.textContent = firstName;
+          }
+
+          /* =========================================
+           FULL NAME
+           
+           Prakriti Neupane
+        ========================================= */
+
+          const fullName = document.getElementById("fullName");
+
+          if (fullName) {
+            fullName.textContent = username;
+          }
+
+          /* =========================================
+           EMAIL
+        ========================================= */
+
+          const emailElement = document.getElementById("email");
+
+          if (emailElement) {
+            emailElement.textContent = email;
+          }
+
+          /* =========================================
+           ROLE
+        ========================================= */
+
+          const roleElement = document.getElementById("userRole");
+
+          if (roleElement) {
+            roleElement.textContent = formattedRole;
+          }
+
+          /* =========================================
+           PROFILE ROLE
+        ========================================= */
+
+          const profileRole = document.getElementById("profileRole");
+
+          if (profileRole) {
+            profileRole.textContent = formattedRole + " Account";
+          }
+
+          /* =========================================
+           MAIN PROFILE AVATAR
+        ========================================= */
+
+          const avatar = document.getElementById("avatar");
+
+          if (avatar) {
+            avatar.textContent = firstLetter;
+          }
+
+          /* =========================================
+           UPDATE OTHER USER AVATARS
+           
+           This is the important fix for U.
+           
+           If another page/element has:
+           
+           .user-avatar
+           .profile-avatar
+           #profileButton
+           #headerAvatar
+           
+           it will also become P.
+        ========================================= */
+
+          const avatarElements = document.querySelectorAll(
+            ".user-avatar, " +
+              ".profile-avatar, " +
+              "#profileButton, " +
+              "#headerAvatar",
+          );
+
+          avatarElements.forEach(function (element) {
+            element.textContent = firstLetter;
+          });
+
+          /* =========================================
+           SAVE USER DATA
+        ========================================= */
+
+          localStorage.setItem("userName", username);
+        } catch (error) {
+          console.error("Unable to load user profile:", error);
+
+          document.getElementById("profileName").textContent = "Profile unavailable";
+          document.getElementById("fullName").textContent = "Unable to load profile. Please try again.";
+          document.getElementById("email").textContent = "—";
+          document.getElementById("userRole").textContent = "—";
+          document.getElementById("profileMessage").textContent = "Unable to load your profile. Please check your connection and try again.";
+
+          if (error.status === 401) window.location.replace("/login.html/");
+        }
+      }
+
+      /* ============================================================
+   BACK TO CUSTOMER DASHBOARD
+============================================================ */
+
+      function goDashboard() {
+        window.location.href = "/customerDashboard.html/";
+      }
+
+      /* ============================================================
+   LOGOUT
+============================================================ */
+
+      async function logout() {
+        try {
+          await fetch("/api/user/logout/", {
+            method: "POST",
+
+            credentials: "include",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          /* Clear saved customer data */
+
+          localStorage.removeItem("userName");
+
+          localStorage.removeItem("userEmail");
+
+          localStorage.removeItem("userRole");
+
+          localStorage.removeItem("queueData");
+
+          /* Logout → Login */
+
+          window.location.replace("/login.html/");
+        } catch (error) {
+          console.error("Logout error:", error);
+
+          /* Clear saved data */
+
+          localStorage.removeItem("userName");
+
+          localStorage.removeItem("userEmail");
+
+          localStorage.removeItem("userRole");
+
+          localStorage.removeItem("queueData");
+
+          /* Still go to login */
+
+          window.location.replace("/login.html/");
+        }
+      }
+
+      /* ============================================================
+   PAGE LOAD
+============================================================ */
+
+      document.addEventListener("DOMContentLoaded", function () {
+        loadUserProfile();
+        document.getElementById("profileForm").addEventListener("submit", async function(event) {
+          event.preventDefault(); const message=document.getElementById("profileMessage");
+          try { const token=document.cookie.split(";").map(x=>x.trim()).find(x=>x.startsWith("csrftoken="))?.split("=").slice(1).join("=")||""; const response=await fetch("/api/user/customer-profile/", {method:"PATCH",credentials:"same-origin",headers:{"Content-Type":"application/json","X-CSRFToken":decodeURIComponent(token)},body:JSON.stringify({username:document.getElementById("editUsername").value})}); const data=await queueLessReadJson(response); if(!response.ok) throw new Error(data.message||"Unable to save profile."); message.textContent="Profile saved."; await loadUserProfile(); } catch(error) { message.textContent=error.message; }
+        });
+      });
+    </script>
+  </body>
+</html>

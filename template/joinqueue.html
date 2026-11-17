@@ -1,0 +1,983 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>QueueLess — Join Queue</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --sky-light: #eaf7fa;
+        --sky: #d8f0f5;
+        --sky-dark: #b9e1e9;
+
+        --navy: #16233f;
+        --navy-light: #243b63;
+
+        --white: #ffffff;
+        --text: #16233f;
+        --muted: #667580;
+
+        --border: #c7dde2;
+
+        --blue: #2e7183;
+        --blue-hover: #245d6d;
+
+        --green: #3b7d74;
+        --green-light: #e1f5ee;
+
+        --shadow: 0 12px 35px rgba(22, 35, 63, 0.09);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        font-family: "Inter", sans-serif;
+        color: var(--text);
+        background: var(--sky-light);
+      }
+
+      button,
+      select {
+        font-family: inherit;
+      }
+
+      .page {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* =========================
+           HEADER
+        ========================== */
+
+      .header {
+        height: 78px;
+
+        background: rgba(255, 255, 255, 0.92);
+
+        border-bottom: 1px solid var(--border);
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 0 55px;
+
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+
+      .logo img {
+        width: 175px;
+        height: auto;
+        display: block;
+      }
+
+      /* =========================
+           BACK BUTTON
+        ========================== */
+
+      .back-btn {
+        border: none;
+        background: transparent;
+
+        color: var(--navy);
+
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        padding: 9px 12px;
+        border-radius: 8px;
+
+        transition: 0.2s;
+      }
+
+      .back-btn:hover {
+        background: var(--sky);
+      }
+
+      /* =========================
+           CONTENT
+        ========================== */
+
+      .content {
+        width: 100%;
+        max-width: 1050px;
+
+        margin: 0 auto;
+
+        padding: 45px 25px 60px;
+
+        flex: 1;
+      }
+
+      .intro {
+        text-align: center;
+        margin-bottom: 35px;
+      }
+
+      .intro h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 34px;
+        margin-bottom: 9px;
+      }
+
+      .intro p {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      /* =========================
+           MAIN GRID
+        ========================== */
+
+      .main-grid {
+        display: grid;
+
+        grid-template-columns: 1.05fr 0.95fr;
+
+        gap: 25px;
+
+        align-items: stretch;
+      }
+
+      /* =========================
+           FORM CARD
+        ========================== */
+
+      .form-card {
+        background: var(--white);
+
+        border: 1px solid var(--border);
+
+        border-radius: 18px;
+
+        padding: 30px;
+
+        box-shadow: var(--shadow);
+      }
+
+      .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      .card-description {
+        color: var(--muted);
+
+        font-size: 12px;
+
+        line-height: 1.6;
+
+        margin-bottom: 25px;
+      }
+
+      .form-group {
+        margin-bottom: 19px;
+      }
+
+      .form-label {
+        display: block;
+
+        font-size: 12px;
+        font-weight: 600;
+
+        margin-bottom: 8px;
+      }
+
+      .required {
+        color: #c6473f;
+      }
+
+      .select-wrapper {
+        position: relative;
+      }
+
+      .select-wrapper::after {
+        content: "⌄";
+
+        position: absolute;
+
+        right: 15px;
+        top: 50%;
+
+        transform: translateY(-50%);
+
+        color: var(--muted);
+
+        pointer-events: none;
+
+        font-size: 17px;
+      }
+
+      select {
+        width: 100%;
+
+        height: 50px;
+
+        border: 1px solid var(--border);
+
+        background: #fbfeff;
+
+        border-radius: 10px;
+
+        padding: 0 42px 0 14px;
+
+        color: var(--text);
+
+        font-size: 13px;
+
+        outline: none;
+
+        appearance: none;
+
+        cursor: pointer;
+
+        transition: 0.2s;
+      }
+
+      select:focus {
+        border-color: var(--blue);
+
+        box-shadow: 0 0 0 3px rgba(46, 113, 131, 0.1);
+      }
+
+      /* =========================
+           JOIN BUTTON
+        ========================== */
+
+      .join-btn {
+        width: 100%;
+
+        height: 52px;
+
+        border: none;
+
+        background: var(--navy);
+
+        color: var(--white);
+
+        border-radius: 10px;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        margin-top: 5px;
+
+        transition: 0.2s;
+      }
+
+      .join-btn:hover {
+        background: var(--navy-light);
+
+        transform: translateY(-1px);
+
+        box-shadow: 0 7px 18px rgba(22, 35, 63, 0.15);
+      }
+
+      /* =========================
+           INFO CARD
+        ========================== */
+
+      .info-card {
+        background: var(--navy);
+
+        color: var(--white);
+
+        border-radius: 18px;
+
+        padding: 30px;
+
+        position: relative;
+
+        overflow: hidden;
+
+        min-height: 100%;
+      }
+
+      .info-card::before {
+        content: "";
+
+        position: absolute;
+
+        width: 220px;
+        height: 220px;
+
+        border: 35px solid rgba(255, 255, 255, 0.045);
+
+        border-radius: 50%;
+
+        right: -95px;
+        top: -85px;
+      }
+
+      .info-card::after {
+        content: "";
+
+        position: absolute;
+
+        width: 170px;
+        height: 170px;
+
+        border: 25px solid rgba(255, 255, 255, 0.035);
+
+        border-radius: 50%;
+
+        left: -90px;
+        bottom: -100px;
+      }
+
+      .info-content {
+        position: relative;
+        z-index: 2;
+      }
+
+      .info-title {
+        font-family: "Playfair Display", serif;
+
+        font-size: 27px;
+
+        margin-bottom: 10px;
+      }
+
+      .info-subtitle {
+        font-size: 12px;
+
+        line-height: 1.7;
+
+        opacity: 0.72;
+
+        margin-bottom: 28px;
+      }
+
+      /* =========================
+           STEPS
+        ========================== */
+
+      .steps {
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 20px;
+      }
+
+      .step {
+        display: flex;
+
+        align-items: flex-start;
+
+        gap: 13px;
+      }
+
+      .step-number {
+        width: 32px;
+        height: 32px;
+
+        border-radius: 50%;
+
+        background: rgba(255, 255, 255, 0.12);
+
+        border: 1px solid rgba(255, 255, 255, 0.12);
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        font-size: 12px;
+        font-weight: 600;
+
+        flex-shrink: 0;
+      }
+
+      .step-text h3 {
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+
+      .step-text p {
+        font-size: 11px;
+
+        line-height: 1.5;
+
+        opacity: 0.62;
+      }
+
+      /* =========================
+           SERVICE INFORMATION
+        ========================== */
+
+      .service-preview {
+        margin-top: 30px;
+
+        background: rgba(255, 255, 255, 0.08);
+
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        border-radius: 11px;
+
+        padding: 15px;
+      }
+
+      .service-preview-title {
+        font-size: 11px;
+
+        opacity: 0.65;
+
+        margin-bottom: 10px;
+      }
+
+      .service-list {
+        display: flex;
+
+        flex-wrap: wrap;
+
+        gap: 7px;
+      }
+
+      .service-tag {
+        background: rgba(255, 255, 255, 0.1);
+
+        border-radius: 20px;
+
+        padding: 6px 9px;
+
+        font-size: 10px;
+      }
+
+      .bottom-note {
+        text-align: center;
+
+        color: var(--muted);
+
+        font-size: 11px;
+
+        margin-top: 22px;
+      }
+
+      /* =========================
+           MODAL
+        ========================== */
+
+      .modal-overlay {
+        position: fixed;
+
+        inset: 0;
+
+        background: rgba(22, 35, 63, 0.42);
+
+        display: none;
+
+        align-items: center;
+        justify-content: center;
+
+        padding: 20px;
+
+        z-index: 200;
+      }
+
+      .modal-overlay.show {
+        display: flex;
+      }
+
+      .modal {
+        width: 100%;
+
+        max-width: 410px;
+
+        background: var(--white);
+
+        border-radius: 18px;
+
+        padding: 30px;
+
+        text-align: center;
+
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+
+        animation: modalIn 0.25s ease;
+      }
+
+      @keyframes modalIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .success-icon {
+        width: 65px;
+        height: 65px;
+
+        margin: 0 auto 16px;
+
+        border-radius: 50%;
+
+        background: var(--green-light);
+
+        color: var(--green);
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal h2 {
+        font-family: "Playfair Display", serif;
+
+        font-size: 26px;
+
+        margin-bottom: 7px;
+      }
+
+      .modal p {
+        color: var(--muted);
+
+        font-size: 12px;
+
+        line-height: 1.6;
+
+        margin-bottom: 20px;
+      }
+
+      .generated-token {
+        background: var(--sky);
+
+        border: 1px solid var(--sky-dark);
+
+        border-radius: 12px;
+
+        padding: 15px;
+
+        margin-bottom: 20px;
+      }
+
+      .token-label {
+        display: block;
+
+        color: var(--muted);
+
+        font-size: 10px;
+
+        margin-bottom: 5px;
+      }
+
+      .token-number {
+        font-family: "Playfair Display", serif;
+
+        font-size: 38px;
+
+        font-weight: 700;
+      }
+
+      .continue-btn {
+        width: 100%;
+
+        height: 48px;
+
+        border: none;
+
+        border-radius: 9px;
+
+        background: var(--navy);
+
+        color: var(--white);
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+      }
+
+      .continue-btn:hover {
+        background: var(--navy-light);
+      }
+
+      /* =========================
+           RESPONSIVE
+        ========================== */
+
+      @media (max-width: 850px) {
+        .header {
+          padding: 0 25px;
+        }
+
+        .content {
+          padding: 35px 20px 50px;
+        }
+
+        .main-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .info-card {
+          min-height: auto;
+        }
+      }
+
+      @media (max-width: 550px) {
+        .header {
+          height: 70px;
+          padding: 0 15px;
+        }
+
+        .logo img {
+          width: 145px;
+        }
+
+        .content {
+          padding: 28px 15px 40px;
+        }
+
+        .intro {
+          margin-bottom: 25px;
+        }
+
+        .intro h1 {
+          font-size: 28px;
+        }
+
+        .form-card,
+        .info-card {
+          padding: 22px 18px;
+          border-radius: 14px;
+        }
+
+        .back-btn span {
+          display: none;
+        }
+
+        .info-title {
+          font-size: 24px;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="{% static 'css/queueless-refinements.css' %}">
+  </head>
+
+  <body>
+    <div class="page">
+      <!-- =========================
+         HEADER
+    ========================== -->
+
+      <header class="header">
+        <div class="logo">
+          <img src="{% static 'logo/logo.png' %}" alt="QueueLess Logo" />
+        </div>
+
+        <!-- BACK TO DASHBOARD -->
+
+        <button type="button" class="back-btn" onclick="goBack()">
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M19 12H5" />
+
+            <path d="M12 19l-7-7 7-7" />
+          </svg>
+
+          <span>Back to Dashboard</span>
+        </button>
+      </header>
+
+      <!-- =========================
+         CONTENT
+    ========================== -->
+
+      <main class="content">
+        <div class="intro">
+          <h1>Join a Queue</h1>
+
+          <p>
+            Select your service and get your token without waiting in line.
+          </p>
+        </div>
+
+        <div class="main-grid">
+          <!-- FORM -->
+
+          <section class="form-card">
+            <div class="card-title">Queue Details</div>
+
+            <div class="card-description">
+              Choose a service and track your queue position after joining.
+            </div>
+
+            <!-- SERVICE -->
+
+            <div class="form-group">
+              <label class="form-label">
+                Select Service
+
+                <span class="required">*</span>
+              </label>
+
+              <div class="select-wrapper">
+                <select id="serviceSelect">
+                  <option value="">Loading services…</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- JOIN -->
+
+            <button type="button" class="join-btn" onclick="joinQueue()">
+              Join Queue
+
+              <span>→</span>
+            </button>
+          </section>
+
+          <!-- INFO CARD -->
+
+          <section class="info-card">
+            <div class="info-content">
+              <div class="info-title">Skip the waiting.</div>
+
+              <div class="info-subtitle">
+                QueueLess lets you join the queue remotely and monitor your
+                position while you spend your time doing what matters.
+              </div>
+
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">01</div>
+
+                  <div class="step-text">
+                    <h3>Choose your service</h3>
+
+                    <p>Select the service you need.</p>
+                  </div>
+                </div>
+
+                <div class="step">
+                  <div class="step-number">02</div>
+
+                  <div class="step-text">
+                    <h3>Get your token</h3>
+
+                    <p>QueueLess generates a unique token for you.</p>
+                  </div>
+                </div>
+
+                <div class="step">
+                  <div class="step-number">03</div>
+
+                  <div class="step-text">
+                    <h3>Track your position</h3>
+
+                    <p>
+                      See your position and estimated waiting time in real time.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="step">
+                  <div class="step-number">04</div>
+
+                  <div class="step-text">
+                    <h3>Get notified</h3>
+
+                    <p>Receive a notification when your turn is approaching.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="service-preview">
+                <div class="service-preview-title">AVAILABLE SERVICES</div>
+
+                <div class="service-list">
+                  <span>Services are loaded from QueueLess.</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="bottom-note">QueueLess • Queue management made simple</div>
+      </main>
+    </div>
+
+    <!-- =========================
+     SUCCESS MODAL
+========================== -->
+
+    <div class="modal-overlay" id="successModal">
+      <div class="modal">
+        <div class="success-icon">
+          <svg
+            width="30"
+            height="30"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M5 12l4 4L19 6" />
+          </svg>
+        </div>
+
+        <h2>You're in the queue!</h2>
+
+        <p>
+          Your queue token has been generated successfully. You can now track
+          your position and waiting time.
+        </p>
+
+        <div class="generated-token">
+          <span class="token-label"> YOUR TOKEN </span>
+
+          <div class="token-number" id="generatedToken">—</div>
+        </div>
+
+        <button type="button" class="continue-btn" onclick="goToQueueStatus()">
+          View Queue Status
+        </button>
+      </div>
+    </div>
+
+    <script src="{% static 'js/api.js' %}"></script>
+<script>
+      /* =========================================
+       BACK TO DASHBOARD
+       IMPORTANT:
+       Uses Django URL name instead of cd.html
+    ========================================== */
+
+      function goBack() {
+        window.location.href = "{% url 'customerDashboard' %}";
+      }
+
+      /* =========================================
+       JOIN QUEUE
+    ========================================== */
+
+      async function loadCatalog() {
+        const response = await fetch("/api/user/customer-services/", {credentials: "same-origin"});
+        const data = await queueLessReadJson(response);
+        if (!response.ok) { if (response.status === 401) location.href = "/login.html/"; throw new Error(data.message || "Catalog unavailable."); }
+        document.getElementById("serviceSelect").innerHTML = '<option value="">Choose a service</option>' + data.services.map(s => `<option value="${s.id}">${escapeCatalog(s.name)}</option>`).join("");
+        document.querySelector(".service-list").innerHTML = data.services.length ? data.services.map(s => `<span class="service-tag">${escapeCatalog(s.name)}</span>`).join("") : "<span>No active services available.</span>";
+      }
+      function escapeCatalog(value) { const el = document.createElement("span"); el.textContent = value || ""; return el.innerHTML; }
+      function joinQueue() {
+        const serviceId = Number(document.getElementById("serviceSelect").value);
+
+        if (!serviceId) {
+          alert("Please select a service before joining the queue.");
+          return;
+        }
+
+        fetch("/api/user/join-queue/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({service_id: serviceId}),
+        })
+          .then(async (response) => ({ response, data: await queueLessReadJson(response) }))
+          .then(({ response, data }) => {
+            console.log("Join Queue Response:", data);
+
+            if (response.status === 401) {
+              window.location.replace("/login.html/");
+              return;
+            }
+
+            if (!data.success) {
+              alert(data.message || "Unable to join queue.");
+              return;
+            }
+
+            // Get the REAL token generated by Django/Staff
+            const token =
+              data.token || data.queue?.token || data.queue_data?.token;
+
+            if (!token) {
+              alert("Queue joined, but token was not returned by the server.");
+              return;
+            }
+
+            // Display actual token
+            document.getElementById("generatedToken").textContent = token
+              .toString()
+              .startsWith("#")
+              ? token
+              : "#" + token;
+
+            // Show success modal
+            document.getElementById("successModal").classList.add("show");
+          })
+          .catch((error) => {
+            console.error("Join Queue Error:", error);
+
+            alert("Unable to join queue. Please try again.");
+          });
+      }
+
+      /* =========================================
+       QUEUE STATUS
+    ========================================== */
+
+      function goToQueueStatus() {
+        window.location.href = "{% url 'queuestatus' %}";
+      }
+
+      /* =========================================
+       CLOSE MODAL
+    ========================================== */
+
+      document
+        .getElementById("successModal")
+        .addEventListener("click", function (event) {
+          if (event.target === this) {
+            this.classList.remove("show");
+          }
+        });
+      loadCatalog().catch(error => { alert(error.message); });
+    </script>
+  </body>
+</html>

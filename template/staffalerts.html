@@ -1,0 +1,1670 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>QueueLess - Staff Alerts</title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        :root {
+
+            --navy: #07152f;
+            --sky: #e8f8fc;
+            --white: #ffffff;
+            --text: #14233d;
+            --muted: #6b7a90;
+            --border: #dce9ed;
+
+            --green: #3d887a;
+            --green-light: #e5f5f1;
+
+            --yellow: #c58a24;
+            --yellow-light: #fff5df;
+
+            --red: #b84646;
+            --red-light: #fff0f0;
+
+            --blue: #2874d8;
+            --blue-light: #eaf2ff;
+
+            --shadow: 0 8px 25px rgba(7, 21, 47, .06);
+        }
+
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            background: var(--sky);
+
+            color: var(--text);
+
+            min-height: 100vh;
+        }
+
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        .sidebar {
+
+            position: fixed;
+
+            left: 0;
+            top: 0;
+
+            width: 245px;
+            height: 100vh;
+
+            background: white;
+
+            border-right: 1px solid var(--border);
+
+            padding: 25px 15px;
+
+            z-index: 10;
+        }
+
+
+        .logo {
+
+            text-align: center;
+
+            margin-bottom: 45px;
+        }
+
+
+        .logo img {
+
+            width: 190px;
+
+            max-width: 100%;
+        }
+
+
+        .menu-title {
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            letter-spacing: 1.5px;
+
+            color: var(--muted);
+
+            margin: 0 15px 12px;
+        }
+
+
+        .menu {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 6px;
+        }
+
+
+        .menu a {
+
+            text-decoration: none;
+
+            color: #40516a;
+
+            padding: 14px 15px;
+
+            border-radius: 12px;
+
+            display: flex;
+
+            gap: 13px;
+
+            align-items: center;
+
+            font-size: 14px;
+        }
+
+
+        .menu a:hover,
+        .menu a.active {
+
+            background: var(--navy);
+
+            color: white;
+        }
+
+
+        .icon {
+
+            width: 22px;
+
+            text-align: center;
+
+            font-size: 18px;
+        }
+
+
+        .logout {
+
+            position: absolute;
+
+            bottom: 25px;
+
+            left: 15px;
+
+            right: 15px;
+        }
+
+
+        .logout a {
+
+            display: block;
+
+            padding: 13px 15px;
+
+            color: var(--red);
+
+            text-decoration: none;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+        }
+
+
+        .logout a:hover {
+
+            background: var(--red-light);
+        }
+
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        .main {
+
+            margin-left: 245px;
+
+            padding: 32px 42px 50px;
+        }
+
+
+        .topbar {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 28px;
+        }
+
+
+        h1 {
+
+            font-size: 34px;
+
+            color: var(--navy);
+
+            margin-bottom: 7px;
+        }
+
+
+        .subtitle {
+
+            font-size: 14px;
+
+            color: var(--muted);
+        }
+
+
+        .top-actions {
+
+            display: flex;
+
+            gap: 12px;
+
+            align-items: center;
+        }
+
+
+        .notification,
+        .profile {
+
+            width: 46px;
+
+            height: 46px;
+
+            border: 1px solid var(--border);
+
+            background: white;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            font-size: 18px;
+        }
+
+
+        .profile {
+
+            border-radius: 50%;
+
+            background: var(--navy);
+
+            color: white;
+
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           MESSAGE
+        ===================================================== */
+
+        .message {
+
+            display: none;
+
+            margin-bottom: 20px;
+
+            padding: 13px 16px;
+
+            border-radius: 10px;
+
+            font-size: 13px;
+        }
+
+
+        .message.error {
+
+            display: block;
+
+            background: var(--red-light);
+
+            color: var(--red);
+        }
+
+
+        /* =====================================================
+           CARD
+        ===================================================== */
+
+        .card {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 18px;
+
+            padding: 25px;
+
+            box-shadow: var(--shadow);
+
+            margin-bottom: 22px;
+        }
+
+
+        .card-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 20px;
+        }
+
+
+        .card-header h2 {
+
+            font-size: 21px;
+
+            color: var(--navy);
+        }
+
+
+        .refresh-btn {
+
+            border: none;
+
+            background: var(--navy);
+
+            color: white;
+
+            padding: 9px 14px;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            font-size: 11px;
+        }
+
+
+        .refresh-btn:hover {
+
+            opacity: .9;
+        }
+
+
+        /* =====================================================
+           ALERT
+        ===================================================== */
+
+        .alert {
+
+            display: flex;
+
+            gap: 15px;
+
+            padding: 18px 5px;
+
+            border-bottom: 1px solid #edf2f4;
+        }
+
+
+        .alert:last-child {
+
+            border-bottom: none;
+        }
+
+
+        .alert-icon {
+
+            width: 42px;
+
+            height: 42px;
+
+            min-width: 42px;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 19px;
+
+            background: var(--blue-light);
+        }
+
+
+        .alert-content {
+
+            flex: 1;
+        }
+
+
+        .alert-content strong {
+
+            display: block;
+
+            color: var(--navy);
+
+            font-size: 14px;
+
+            margin-bottom: 5px;
+        }
+
+
+        .alert-content p {
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+
+        .time {
+
+            display: block;
+
+            color: #9aa7b7;
+
+            font-size: 10px;
+
+            margin-top: 7px;
+        }
+
+
+        /* =====================================================
+           EMPTY / LOADING
+        ===================================================== */
+
+        .empty {
+
+            text-align: center;
+
+            padding: 45px 20px;
+
+            color: var(--muted);
+        }
+
+
+        .empty-icon {
+
+            font-size: 40px;
+
+            margin-bottom: 12px;
+        }
+
+
+        .empty h3 {
+
+            color: var(--navy);
+
+            margin-bottom: 7px;
+
+            font-size: 18px;
+        }
+
+
+        .loading {
+
+            text-align: center;
+
+            padding: 35px;
+
+            color: var(--muted);
+
+            font-size: 13px;
+        }
+
+
+        /* =====================================================
+           STATUS BADGES
+        ===================================================== */
+
+        .status {
+
+            display: inline-block;
+
+            padding: 6px 10px;
+
+            border-radius: 15px;
+
+            font-size: 9px;
+
+            font-weight: bold;
+        }
+
+
+        .status.waiting {
+
+            background: var(--yellow-light);
+
+            color: var(--yellow);
+        }
+
+
+        .status.called {
+
+            background: var(--blue-light);
+
+            color: var(--blue);
+        }
+
+
+        .status.serving {
+
+            background: var(--green-light);
+
+            color: var(--green);
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media(max-width: 900px) {
+
+            .sidebar {
+
+                width: 210px;
+            }
+
+
+            .main {
+
+                margin-left: 210px;
+
+                padding: 25px;
+            }
+        }
+
+
+        @media(max-width: 650px) {
+
+            .sidebar {
+
+                top: auto;
+
+                bottom: 0;
+
+                width: 100%;
+
+                height: 65px;
+
+                padding: 4px;
+
+                border-right: none;
+
+                border-top: 1px solid var(--border);
+            }
+
+
+            .logo,
+            .menu-title,
+            .logout {
+
+                display: none;
+            }
+
+
+            .menu {
+
+                height: 100%;
+
+                display: grid;
+
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+
+            .menu a {
+
+                flex-direction: column;
+
+                justify-content: center;
+
+                padding: 5px;
+
+                font-size: 8px;
+
+                gap: 2px;
+            }
+
+
+            .icon {
+
+                font-size: 16px;
+            }
+
+
+            .main {
+
+                margin-left: 0;
+
+                padding: 18px 13px 85px;
+            }
+
+
+            h1 {
+
+                font-size: 26px;
+            }
+        }
+
+    </style>
+    <link rel="stylesheet" href="{% static 'css/queueless-refinements.css' %}">
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ===================================================== -->
+
+    <aside class="sidebar">
+
+
+        <div class="logo">
+
+            <img
+                src="{% static 'logo/logo.png' %}"
+                alt="QueueLess"
+            >
+
+        </div>
+
+
+        <div class="menu-title">
+            STAFF MENU
+        </div>
+
+
+        <nav class="menu">
+
+
+            <a href="/staffdashboard.html/">
+
+                <span class="icon">
+                    ⌂
+                </span>
+
+                Dashboard
+
+            </a>
+
+
+            <a href="/staffqueue.html/">
+
+                <span class="icon">
+                    ☷
+                </span>
+
+                Queue
+
+            </a>
+
+
+            <a href="/staffcallnext.html/">
+
+                <span class="icon">
+                    ▶
+                </span>
+
+                Call Next
+
+            </a>
+
+
+            <a
+                href="/staffalerts.html/"
+                class="active"
+            >
+
+                <span class="icon">
+                    ♧
+                </span>
+
+                Alerts
+
+            </a>
+
+
+            <a href="/staffprofile.html/">
+
+                <span class="icon">
+                    ●
+                </span>
+
+                Profile
+
+            </a>
+
+
+        </nav>
+
+
+        <div class="logout">
+
+            <a
+                href="#"
+                onclick="logout(); return false;"
+            >
+                ↪ Logout
+            </a>
+
+        </div>
+
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ===================================================== -->
+
+    <main class="main">
+
+
+        <div class="topbar">
+
+
+            <div>
+
+                <h1>
+                    Alerts & Notifications
+                </h1>
+
+                <p class="subtitle">
+                    Monitor live queue activity and customer status.
+                </p>
+
+            </div>
+
+
+            <div class="top-actions">
+
+
+                <button
+                    class="notification"
+                    onclick="loadAlerts()"
+                    title="Refresh alerts"
+                >
+                    🔔
+                </button>
+
+
+                <button
+                    class="profile"
+                    id="profileButton"
+                    onclick="window.location.href='/staffprofile.html/'"
+                >
+                    S
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+
+
+        <!-- =================================================
+             RECENT ALERTS
+        ================================================= -->
+
+        <div class="card">
+
+
+            <div class="card-header">
+
+                <h2>
+                    Live Queue Alerts
+                </h2>
+
+
+                <button
+                    class="refresh-btn"
+                    onclick="loadAlerts()"
+                >
+                    Refresh
+                </button>
+
+            </div>
+
+
+            <div id="alerts">
+
+                <div class="loading">
+                    Loading alerts...
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             CURRENT QUEUE ACTIVITY
+        ================================================= -->
+
+        <div class="card">
+
+
+            <div class="card-header">
+
+                <h2>
+                    Current Queue Activity
+                </h2>
+
+            </div>
+
+
+            <div id="queueActivity">
+
+                <div class="loading">
+                    Loading queue activity...
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+
+    <script src="{% static 'js/api.js' %}"></script>
+<script>
+
+
+        /* =====================================================
+           API URLS
+        ===================================================== */
+
+        const CURRENT_USER_URL =
+            "/api/user/current-user/";
+
+
+        const STAFF_QUEUE_URL =
+            "/api/user/staff-queue/";
+
+
+        const LOGOUT_URL =
+            "/api/user/logout/";
+
+
+        const LOGIN_URL =
+            "/login.html/";
+
+
+
+        /* =====================================================
+           CHECK STAFF LOGIN
+        ===================================================== */
+
+        async function checkStaffLogin() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        CURRENT_USER_URL,
+                        {
+                            method: "GET",
+
+                            credentials:
+                                "same-origin",
+
+                            headers: {
+                                "Accept":
+                                    "application/json"
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await queueLessReadJson(response);
+
+
+                if (
+                    !response.ok ||
+                    !data.success ||
+                    !data.user
+                ) {
+
+                    window.location.href =
+                        LOGIN_URL;
+
+                    return false;
+                }
+
+
+                if (
+                    data.user.role !== "staff"
+                ) {
+
+                    alert(
+                        "Access denied. Staff login required."
+                    );
+
+
+                    window.location.href =
+                        LOGIN_URL;
+
+                    return false;
+                }
+
+
+                const profileButton =
+                    document.getElementById(
+                        "profileButton"
+                    );
+
+
+                if (profileButton) {
+
+                    const name =
+                        data.user.username ||
+                        "Staff";
+
+                    profileButton.textContent =
+                        name
+                            .charAt(0)
+                            .toUpperCase();
+                }
+
+
+                return true;
+
+            } catch (error) {
+
+                console.error(
+                    "Login check error:",
+                    error
+                );
+
+
+                window.location.href =
+                    LOGIN_URL;
+
+                return false;
+            }
+        }
+
+
+
+        /* =====================================================
+           LOAD ALERTS FROM DATABASE
+        ===================================================== */
+
+        async function loadAlerts() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        STAFF_QUEUE_URL,
+                        {
+                            method: "GET",
+
+                            credentials:
+                                "same-origin",
+
+                            headers: {
+                                "Accept":
+                                    "application/json"
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await queueLessReadJson(response);
+
+
+                if (
+                    response.status === 403
+                ) {
+
+                    window.location.href =
+                        LOGIN_URL;
+
+                    return;
+                }
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Unable to load alerts."
+                    );
+                }
+
+
+                const queues =
+                    Array.isArray(data.queues)
+                        ? data.queues
+                        : [];
+
+
+                renderAlerts(
+                    queues
+                );
+
+
+                renderQueueActivity(
+                    queues,
+                    data
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Alert loading error:",
+                    error
+                );
+
+
+                document.getElementById(
+                    "alerts"
+                ).innerHTML = `
+
+                    <div class="empty">
+
+                        <div class="empty-icon">
+                            ⚠️
+                        </div>
+
+                        <h3>
+                            Unable to load alerts
+                        </h3>
+
+                        <p>
+                            ${escapeHtml(
+                                error.message
+                            )}
+                        </p>
+
+                    </div>
+
+                `;
+            }
+        }
+
+
+
+        /* =====================================================
+           RENDER ALERTS
+        ===================================================== */
+
+        function renderAlerts(
+            queues
+        ) {
+
+
+            const container =
+                document.getElementById(
+                    "alerts"
+                );
+
+
+            if (
+                queues.length === 0
+            ) {
+
+                container.innerHTML = `
+
+                    <div class="empty">
+
+                        <div class="empty-icon">
+                            ✓
+                        </div>
+
+                        <h3>
+                            No active alerts
+                        </h3>
+
+                        <p>
+                            There is no active queue activity right now.
+                        </p>
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            /*
+             * Most recent queue records first.
+             */
+
+            const sortedQueues =
+                [...queues].sort(
+                    function(a, b) {
+
+                        return new Date(
+                            b.created_at
+                        ) -
+                        new Date(
+                            a.created_at
+                        );
+
+                    }
+                );
+
+
+            const alerts =
+                [];
+
+
+            sortedQueues
+                .slice(0, 10)
+                .forEach(
+                    function(queue) {
+
+                        const token =
+                            queue.token ||
+                            "Not Generated";
+
+
+                        const customer =
+                            queue.username ||
+                            "Customer";
+
+
+                        const service =
+                            queue.service ||
+                            "Service";
+
+
+                        if (
+                            queue.status ===
+                            "waiting"
+                        ) {
+
+                            alerts.push({
+
+                                icon: "👤",
+
+                                title:
+                                    "Customer Waiting",
+
+                                message:
+                                    customer +
+                                    " is waiting for " +
+                                    service +
+                                    " with token " +
+                                    token +
+                                    ".",
+
+                                type:
+                                    "waiting",
+
+                                time:
+                                    formatDate(
+                                        queue.created_at
+                                    )
+                            });
+
+
+                        } else if (
+                            queue.status ===
+                            "called"
+                        ) {
+
+                            alerts.push({
+
+                                icon: "📢",
+
+                                title:
+                                    "Customer Called",
+
+                                message:
+                                    "Token " +
+                                    token +
+                                    " (" +
+                                    customer +
+                                    ") has been called.",
+
+                                type:
+                                    "called",
+
+                                time:
+                                    formatDate(
+                                        queue.updated_at ||
+                                        queue.created_at
+                                    )
+                            });
+
+
+                        } else if (
+                            queue.status ===
+                            "serving"
+                        ) {
+
+                            alerts.push({
+
+                                icon: "🔄",
+
+                                title:
+                                    "Customer Being Served",
+
+                                message:
+                                    token +
+                                    " (" +
+                                    customer +
+                                    ") is currently being served.",
+
+                                type:
+                                    "serving",
+
+                                time:
+                                    formatDate(
+                                        queue.updated_at ||
+                                        queue.created_at
+                                    )
+                            });
+
+                        }
+
+                    }
+                );
+
+
+            if (
+                alerts.length === 0
+            ) {
+
+                container.innerHTML = `
+
+                    <div class="empty">
+
+                        <div class="empty-icon">
+                            ✓
+                        </div>
+
+                        <h3>
+                            No active alerts
+                        </h3>
+
+                        <p>
+                            No active queue status requires attention.
+                        </p>
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            container.innerHTML =
+                alerts
+                    .map(
+                        function(alert) {
+
+                            return `
+
+                                <div class="alert">
+
+                                    <div class="alert-icon">
+                                        ${alert.icon}
+                                    </div>
+
+                                    <div class="alert-content">
+
+                                        <strong>
+                                            ${escapeHtml(
+                                                alert.title
+                                            )}
+                                        </strong>
+
+                                        <p>
+                                            ${escapeHtml(
+                                                alert.message
+                                            )}
+                                        </p>
+
+                                        <span class="time">
+                                            ${escapeHtml(
+                                                alert.time
+                                            )}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    )
+                    .join("");
+        }
+
+
+
+        /* =====================================================
+           RENDER CURRENT QUEUE ACTIVITY
+        ===================================================== */
+
+        function renderQueueActivity(
+            queues,
+            data
+        ) {
+
+
+            const container =
+                document.getElementById(
+                    "queueActivity"
+                );
+
+
+            const activeQueues =
+                queues.filter(
+                    function(queue) {
+
+                        return (
+                            queue.status ===
+                            "waiting" ||
+
+                            queue.status ===
+                            "called" ||
+
+                            queue.status ===
+                            "serving"
+                        );
+
+                    }
+                );
+
+
+            if (
+                activeQueues.length === 0
+            ) {
+
+                container.innerHTML = `
+
+                    <div class="empty">
+
+                        <div class="empty-icon">
+                            ✓
+                        </div>
+
+                        <h3>
+                            Queue is empty
+                        </h3>
+
+                        <p>
+                            No customers are currently in the active queue.
+                        </p>
+
+                    </div>
+
+                `;
+
+                return;
+            }
+
+
+            container.innerHTML =
+                activeQueues
+                    .map(
+                        function(queue, index) {
+
+                            let statusClass =
+                                "waiting";
+
+
+                            if (
+                                queue.status ===
+                                "called"
+                            ) {
+
+                                statusClass =
+                                    "called";
+
+                            } else if (
+                                queue.status ===
+                                "serving"
+                            ) {
+
+                                statusClass =
+                                    "serving";
+                            }
+
+
+                            return `
+
+                                <div class="alert">
+
+                                    <div class="alert-icon">
+                                        ${index + 1}
+                                    </div>
+
+                                    <div class="alert-content">
+
+                                        <strong>
+                                            ${escapeHtml(
+                                                queue.username ||
+                                                "Customer"
+                                            )}
+                                        </strong>
+
+                                        <p>
+                                            Token:
+                                            <b>
+                                                ${escapeHtml(
+                                                    queue.token ||
+                                                    "Not Generated"
+                                                )}
+                                            </b>
+
+                                            &nbsp; | &nbsp;
+
+                                            Service:
+                                            ${escapeHtml(
+                                                queue.service ||
+                                                "Not Provided"
+                                            )}
+                                        </p>
+
+                                        <span class="status ${statusClass}">
+                                            ${escapeHtml(
+                                                String(
+                                                    queue.status ||
+                                                    ""
+                                                ).toUpperCase()
+                                            )}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    )
+                    .join("");
+        }
+
+
+
+        /* =====================================================
+           FORMAT DATE
+        ===================================================== */
+
+        function formatDate(
+            value
+        ) {
+
+            if (!value) {
+
+                return "Unknown time";
+            }
+
+
+            const date =
+                new Date(value);
+
+
+            if (
+                Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                return value;
+            }
+
+
+            return date.toLocaleString();
+        }
+
+
+
+        /* =====================================================
+           ESCAPE HTML
+        ===================================================== */
+
+        function escapeHtml(
+            value
+        ) {
+
+            if (
+                value === null ||
+                value === undefined
+            ) {
+
+                return "";
+            }
+
+
+            return String(value)
+
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+        }
+
+
+
+        /* =====================================================
+           LOGOUT
+        ===================================================== */
+
+        async function logout() {
+
+            const confirmed =
+                confirm(
+                    "Are you sure you want to logout?"
+                );
+
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            try {
+
+                await fetch(
+                    LOGOUT_URL,
+                    {
+                        method: "POST",
+
+                        credentials:
+                            "same-origin",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        }
+                    }
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+            }
+
+
+            window.location.href =
+                LOGIN_URL;
+        }
+
+
+
+        /* =====================================================
+           INITIALIZE
+        ===================================================== */
+
+        async function initializePage() {
+
+            const loggedIn =
+                await checkStaffLogin();
+
+
+            if (!loggedIn) {
+                return;
+            }
+
+
+            await loadAlerts();
+
+
+            /*
+             * Refresh alerts from database
+             * every 3 seconds.
+             */
+
+            setInterval(
+                loadAlerts,
+                3000
+            );
+        }
+
+
+        initializePage();
+
+    </script>
+
+
+</body>
+
+</html>

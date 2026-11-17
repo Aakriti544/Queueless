@@ -1,0 +1,55 @@
+/* Shared polish for controls and compact text across QueueLess pages. */
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+select,
+textarea {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 42px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+button {
+  max-width: 100%;
+  font-family: inherit;
+}
+
+:where(input, select, textarea, button, a):focus-visible {
+  outline: 3px solid rgba(33, 109, 255, 0.45);
+  outline-offset: 2px;
+}
+
+/* The mobile side navigation used 8px text on several dashboard pages. */
+.menu a {
+  font-size: 12px;
+}
+
+/* Keep compact metadata and status labels readable without changing hierarchy. */
+.notification-dot.has-count,
+.status,
+.queue-info-item span,
+.notification-text small,
+.service-tag,
+.token-label,
+.notification-time,
+.status-text,
+.stat-label,
+.time,
+.detail span,
+.branch small,
+.badge,
+.waiting,
+.called,
+.serving,
+.call-btn {
+  font-size: 11px;
+}
+

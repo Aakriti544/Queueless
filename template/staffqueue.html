@@ -1,0 +1,2029 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>QueueLess - Queue</title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        :root {
+
+            --navy: #07152f;
+
+            --sky: #e8f8fc;
+
+            --white: #fff;
+
+            --text: #14233d;
+
+            --muted: #6b7a90;
+
+            --border: #dce9ed;
+
+            --green: #3d887a;
+
+            --green-light: #e5f5f1;
+
+            --yellow: #c58a24;
+
+            --yellow-light: #fff5df;
+
+            --red: #b84646;
+
+            --red-light: #fff0f0;
+
+            --blue: #2874d8;
+
+            --blue-light: #eaf2ff;
+
+            --shadow: 0 8px 25px rgba(7, 21, 47, .06);
+        }
+
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            background: var(--sky);
+
+            color: var(--text);
+
+            min-height: 100vh;
+        }
+
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        .sidebar {
+
+            position: fixed;
+
+            left: 0;
+
+            top: 0;
+
+            width: 245px;
+
+            height: 100vh;
+
+            background: white;
+
+            border-right: 1px solid var(--border);
+
+            padding: 25px 15px;
+
+            z-index: 10;
+        }
+
+
+        .logo {
+
+            text-align: center;
+
+            margin-bottom: 45px;
+        }
+
+
+        .logo img {
+
+            width: 190px;
+
+            max-width: 100%;
+        }
+
+
+        .menu-title {
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            letter-spacing: 1.5px;
+
+            color: var(--muted);
+
+            margin: 0 15px 12px;
+        }
+
+
+        .menu {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 6px;
+        }
+
+
+        .menu a {
+
+            text-decoration: none;
+
+            color: #40516a;
+
+            padding: 14px 15px;
+
+            border-radius: 12px;
+
+            display: flex;
+
+            gap: 13px;
+
+            align-items: center;
+
+            font-size: 14px;
+        }
+
+
+        .menu a:hover,
+        .menu a.active {
+
+            background: var(--navy);
+
+            color: white;
+        }
+
+
+        .icon {
+
+            width: 22px;
+
+            text-align: center;
+
+            font-size: 18px;
+        }
+
+
+        .logout {
+
+            position: absolute;
+
+            bottom: 25px;
+
+            left: 15px;
+
+            right: 15px;
+        }
+
+
+        .logout a {
+
+            display: block;
+
+            padding: 13px 15px;
+
+            color: var(--red);
+
+            text-decoration: none;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+        }
+
+
+        .logout a:hover {
+
+            background: var(--red-light);
+        }
+
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        .main {
+
+            margin-left: 245px;
+
+            padding: 32px 42px 50px;
+        }
+
+
+        .topbar {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 28px;
+        }
+
+
+        h1 {
+
+            font-size: 34px;
+
+            color: var(--navy);
+
+            margin-bottom: 7px;
+        }
+
+
+        .subtitle {
+
+            font-size: 14px;
+
+            color: var(--muted);
+        }
+
+
+        .top-actions {
+
+            display: flex;
+
+            gap: 12px;
+
+            align-items: center;
+        }
+
+
+        .notification,
+        .profile {
+
+            width: 46px;
+
+            height: 46px;
+
+            border: 1px solid var(--border);
+
+            background: white;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            font-size: 18px;
+        }
+
+
+        .profile {
+
+            border-radius: 50%;
+
+            background: var(--navy);
+
+            color: white;
+
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           BRANCH
+        ===================================================== */
+
+        .branch {
+
+            background: var(--navy);
+
+            color: white;
+
+            padding: 25px 28px;
+
+            border-radius: 18px;
+
+            margin-bottom: 25px;
+        }
+
+
+        .branch small {
+
+            color: #aebdce;
+
+            font-size: 10px;
+        }
+
+
+        .branch h2 {
+
+            font-size: 23px;
+
+            margin-top: 7px;
+        }
+
+
+        /* =====================================================
+           STATS
+        ===================================================== */
+
+        .stats {
+
+            display: grid;
+
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 16px;
+
+            margin-bottom: 25px;
+        }
+
+
+        .stat {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 16px;
+
+            padding: 22px;
+
+            box-shadow: var(--shadow);
+        }
+
+
+        .stat span {
+
+            font-size: 12px;
+
+            color: var(--muted);
+        }
+
+
+        .stat h3 {
+
+            font-size: 28px;
+
+            margin-top: 10px;
+
+            color: var(--navy);
+        }
+
+
+        /* =====================================================
+           CARD
+        ===================================================== */
+
+        .card {
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 18px;
+
+            padding: 25px;
+
+            box-shadow: var(--shadow);
+        }
+
+
+        .card-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 20px;
+        }
+
+
+        .card-header h2 {
+
+            font-size: 21px;
+
+            color: var(--navy);
+        }
+
+
+        .badge {
+
+            background: var(--green-light);
+
+            color: var(--green);
+
+            padding: 7px 12px;
+
+            border-radius: 20px;
+
+            font-size: 10px;
+
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           TABLE
+        ===================================================== */
+
+        .table-wrap {
+
+            overflow-x: auto;
+        }
+
+
+        table {
+
+            width: 100%;
+
+            min-width: 850px;
+
+            border-collapse: collapse;
+        }
+
+
+        th {
+
+            background: var(--sky);
+
+            padding: 14px;
+
+            text-align: left;
+
+            font-size: 10px;
+
+            color: var(--muted);
+        }
+
+
+        td {
+
+            padding: 16px 14px;
+
+            border-bottom: 1px solid #edf2f4;
+
+            font-size: 12px;
+        }
+
+
+        .token {
+
+            font-weight: bold;
+
+            color: var(--navy);
+        }
+
+
+        .waiting {
+
+            background: var(--yellow-light);
+
+            color: var(--yellow);
+
+            padding: 6px 10px;
+
+            border-radius: 15px;
+
+            font-size: 9px;
+
+            font-weight: bold;
+        }
+
+
+        .called {
+
+            background: var(--blue-light);
+
+            color: var(--blue);
+
+            padding: 6px 10px;
+
+            border-radius: 15px;
+
+            font-size: 9px;
+
+            font-weight: bold;
+        }
+
+
+        .serving {
+
+            background: var(--green-light);
+
+            color: var(--green);
+
+            padding: 6px 10px;
+
+            border-radius: 15px;
+
+            font-size: 9px;
+
+            font-weight: bold;
+        }
+
+
+        .call-btn {
+
+            border: none;
+
+            background: var(--navy);
+
+            color: white;
+
+            padding: 8px 12px;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            font-size: 10px;
+        }
+
+
+        .call-btn:hover {
+
+            opacity: .9;
+        }
+
+
+        .call-btn:disabled {
+
+            background: #a8b3c1;
+
+            cursor: not-allowed;
+        }
+
+
+        /* =====================================================
+           EMPTY
+        ===================================================== */
+
+        .empty {
+
+            text-align: center;
+
+            padding: 45px 20px;
+
+            color: var(--muted);
+        }
+
+
+        .empty-icon {
+
+            font-size: 40px;
+
+            margin-bottom: 12px;
+        }
+
+
+        .empty h3 {
+
+            color: var(--navy);
+
+            margin-bottom: 7px;
+        }
+
+
+        /* =====================================================
+           MESSAGE
+        ===================================================== */
+
+        .message {
+
+            display: none;
+
+            margin-bottom: 20px;
+
+            padding: 13px 16px;
+
+            border-radius: 10px;
+
+            font-size: 13px;
+        }
+
+
+        .message.success {
+
+            display: block;
+
+            background: var(--green-light);
+
+            color: var(--green);
+        }
+
+
+        .message.error {
+
+            display: block;
+
+            background: var(--red-light);
+
+            color: var(--red);
+        }
+
+
+        /* =====================================================
+           LOADING
+        ===================================================== */
+
+        .loading {
+
+            text-align: center;
+
+            padding: 35px;
+
+            color: var(--muted);
+
+            font-size: 13px;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media(max-width: 900px) {
+
+            .sidebar {
+
+                width: 210px;
+            }
+
+
+            .main {
+
+                margin-left: 210px;
+
+                padding: 25px;
+            }
+
+
+            .stats {
+
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+
+        @media(max-width: 650px) {
+
+            .sidebar {
+
+                top: auto;
+
+                bottom: 0;
+
+                width: 100%;
+
+                height: 65px;
+
+                padding: 4px;
+
+                border-right: none;
+
+                border-top: 1px solid var(--border);
+            }
+
+
+            .logo,
+            .menu-title,
+            .logout {
+
+                display: none;
+            }
+
+
+            .menu {
+
+                height: 100%;
+
+                display: grid;
+
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+
+            .menu a {
+
+                flex-direction: column;
+
+                justify-content: center;
+
+                padding: 5px;
+
+                font-size: 8px;
+
+                gap: 2px;
+            }
+
+
+            .icon {
+
+                font-size: 16px;
+            }
+
+
+            .main {
+
+                margin-left: 0;
+
+                padding: 18px 13px 85px;
+            }
+
+
+            h1 {
+
+                font-size: 26px;
+            }
+
+
+            .topbar {
+
+                align-items: flex-start;
+            }
+
+
+            .stats {
+
+                grid-template-columns: 1fr 1fr;
+
+                gap: 10px;
+            }
+
+
+            .stat {
+
+                padding: 16px;
+            }
+
+
+            .stat h3 {
+
+                font-size: 23px;
+            }
+
+
+            .branch h2 {
+
+                font-size: 18px;
+            }
+        }
+
+    </style>
+    <link rel="stylesheet" href="{% static 'css/queueless-refinements.css' %}">
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ===================================================== -->
+
+    <aside class="sidebar">
+
+
+        <div class="logo">
+
+            <img
+                src="{% static 'logo/logo.png' %}"
+                alt="QueueLess"
+            >
+
+        </div>
+
+        <div class="menu-title">
+            STAFF MENU
+        </div>
+
+
+        <nav class="menu">
+
+
+            <a href="/staffdashboard.html/">
+
+                <span class="icon">
+                    ⌂
+                </span>
+
+                Dashboard
+
+            </a>
+
+
+            <a
+                href="/staffqueue.html/"
+                class="active"
+            >
+
+                <span class="icon">
+                    ☷
+                </span>
+
+                Queue
+
+            </a>
+
+
+            <a href="/staffcallnext.html/">
+
+                <span class="icon">
+                    ▶
+                </span>
+
+                Call Next
+
+            </a>
+
+
+            <a href="/staffalerts.html/">
+
+                <span class="icon">
+                    ♧
+                </span>
+
+                Alerts
+
+            </a>
+
+
+            <a href="/staffprofile.html/">
+
+                <span class="icon">
+                    ●
+                </span>
+
+                Profile
+
+            </a>
+
+
+        </nav>
+
+
+        <div class="logout">
+
+            <a
+                href="#"
+                onclick="logout(); return false;"
+            >
+                ↪ Logout
+            </a>
+
+        </div>
+
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ===================================================== -->
+
+    <main class="main">
+
+
+        <div class="topbar">
+
+
+            <div>
+
+                <h1>
+                    Queue Management
+                </h1>
+
+                <p class="subtitle">
+                    View and manage the current customer queue.
+                </p>
+
+            </div>
+
+
+            <div class="top-actions">
+
+
+                <button
+                    class="notification"
+                    onclick="window.location.href='/staffalerts.html/'"
+                    title="Alerts"
+                >
+                    🔔
+                </button>
+
+
+                <button
+                    class="profile"
+                    id="profileButton"
+                    onclick="window.location.href='/staffprofile.html/'"
+                    title="Profile"
+                >
+                    S
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- MESSAGE -->
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+
+
+        <!-- ORGANIZATION -->
+
+        <div class="branch">
+
+            <small>
+                CURRENT ORGANIZATION
+            </small>
+
+
+            <h2 id="organizationName">
+                QueueLess Bank — Main Branch
+            </h2>
+
+        </div>
+
+
+
+        <!-- =================================================
+             STATISTICS
+        ================================================= -->
+
+        <div class="stats">
+
+
+            <div class="stat">
+
+                <span>
+                    Waiting Customers
+                </span>
+
+                <h3 id="waiting">
+                    0
+                </h3>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Currently Serving
+                </span>
+
+                <h3 id="currentlyServing">
+                    —
+                </h3>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Estimated Wait
+                </span>
+
+                <h3 id="estimatedWait">
+                    0 min
+                </h3>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             QUEUE CARD
+        ================================================= -->
+
+        <div class="card">
+
+
+            <div class="card-header">
+
+
+                <h2>
+                    Waiting Queue
+                </h2>
+
+
+                <span
+                    class="badge"
+                    id="queueBadge"
+                >
+                    LOADING...
+                </span>
+
+
+            </div>
+
+
+
+            <div class="table-wrap">
+
+
+                <table>
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                POSITION
+                            </th>
+
+                            <th>
+                                TOKEN
+                            </th>
+
+                            <th>
+                                CUSTOMER
+                            </th>
+
+                            <th>
+                                SERVICE
+                            </th>
+
+                            <th>
+                                EST. WAIT
+                            </th>
+
+                            <th>
+                                STATUS
+                            </th>
+
+                            <th>
+                                ACTION
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+
+                    <tbody id="queueBody">
+
+
+                        <tr>
+
+                            <td colspan="7">
+
+                                <div class="loading">
+
+                                    Loading queue...
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                    </tbody>
+
+
+                </table>
+
+
+            </div>
+
+
+        </div>
+
+
+        <div class="card" style="margin-top:24px">
+            <div class="card-header"><h2>Recent Queue History</h2></div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>TOKEN</th><th>CUSTOMER</th><th>SERVICE</th><th>STATUS</th><th>CALLED BY</th><th>DATE</th></tr></thead>
+                    <tbody id="staffHistoryBody"><tr><td colspan="6">Loading history…</td></tr></tbody>
+                </table>
+            </div>
+            <button id="staffHistoryMore" type="button" class="btn" style="display:none;margin-top:12px">Load older</button>
+        </div>
+
+    </main>
+
+
+
+    <script src="{% static 'js/api.js' %}"></script>
+<script>
+
+
+        /* =====================================================
+           API URLS
+        ===================================================== */
+
+        const CURRENT_USER_URL =
+            "/api/user/current-user/";
+
+
+        const STAFF_QUEUE_URL =
+            "/api/user/staff-queue/";
+
+
+        const CALL_NEXT_URL =
+            "/api/user/call-next/";
+
+
+        const LOGOUT_URL =
+            "/api/user/logout/";
+
+
+        const LOGIN_URL =
+            "/login.html/";
+
+
+
+        /* =====================================================
+           GLOBAL VARIABLES
+        ===================================================== */
+
+        let currentQueues = [];
+
+        let currentStaff = null;
+        let staffHistoryOffset = 0;
+
+
+
+        /* =====================================================
+           SHOW MESSAGE
+        ===================================================== */
+
+        function showMessage(
+            message,
+            type = "success"
+        ) {
+
+            const element =
+                document.getElementById("message");
+
+
+            element.textContent =
+                message;
+
+
+            element.className =
+                "message " + type;
+
+
+            setTimeout(
+                function () {
+
+                    element.className =
+                        "message";
+
+                },
+                4000
+            );
+        }
+
+
+
+        /* =====================================================
+           CHECK STAFF LOGIN
+        ===================================================== */
+
+        async function checkStaffLogin() {
+
+            try {
+
+
+                const response =
+                    await fetch(
+                        CURRENT_USER_URL,
+                        {
+                            method: "GET",
+
+                            credentials:
+                                "same-origin",
+
+                            headers: {
+                                "Accept":
+                                    "application/json"
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await queueLessReadJson(response);
+
+
+                if (
+                    !response.ok ||
+                    !data.success ||
+                    !data.user
+                ) {
+
+                    window.location.href =
+                        LOGIN_URL;
+
+                    return false;
+                }
+
+
+                if (
+                    data.user.role !== "staff"
+                ) {
+
+                    alert(
+                        "Access denied. Staff login required."
+                    );
+
+
+                    window.location.href =
+                        LOGIN_URL;
+
+
+                    return false;
+                }
+
+
+                currentStaff =
+                    data.user;
+
+
+                updateStaffUI(
+                    data.user
+                );
+
+
+                return true;
+
+
+            } catch (error) {
+
+                console.error(
+                    "Staff login check failed:",
+                    error
+                );
+
+
+                window.location.href =
+                    LOGIN_URL;
+
+
+                return false;
+            }
+        }
+
+
+
+        /* =====================================================
+           UPDATE STAFF INFORMATION
+        ===================================================== */
+
+        function updateStaffUI(user) {
+
+
+            const profileButton =
+                document.getElementById(
+                    "profileButton"
+                );
+
+
+            if (profileButton) {
+
+
+                const name =
+                    user.username ||
+                    user.name ||
+                    "Staff";
+
+
+                profileButton.textContent =
+                    name
+                        .charAt(0)
+                        .toUpperCase();
+            }
+
+
+            const organizationName =
+                document.getElementById(
+                    "organizationName"
+                );
+
+
+            if (organizationName) {
+
+
+                if (
+                    user.organization_name
+                ) {
+
+                    organizationName.textContent =
+                        user.organization_name;
+
+                } else if (
+                    user.organization
+                ) {
+
+                    organizationName.textContent =
+                        user.organization;
+
+                } else if (
+                    user.branch_name
+                ) {
+
+                    organizationName.textContent =
+                        user.branch_name;
+
+                }
+
+            }
+
+        }
+
+
+
+        /* =====================================================
+           LOAD QUEUE
+        ===================================================== */
+
+        async function loadQueue() {
+
+            try {
+
+
+                const response =
+                    await fetch(
+                        STAFF_QUEUE_URL,
+                        {
+                            method: "GET",
+
+                            credentials:
+                                "same-origin",
+
+                            headers: {
+                                "Accept":
+                                    "application/json"
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await queueLessReadJson(response);
+
+
+                if (
+                    response.status === 403
+                ) {
+
+                    alert(
+                        "Staff login required."
+                    );
+
+
+                    window.location.href =
+                        LOGIN_URL;
+
+
+                    return;
+                }
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Unable to load queue."
+                    );
+                }
+
+
+                currentQueues =
+                    Array.isArray(
+                        data.queues
+                    )
+                        ? data.queues
+                        : [];
+
+
+                updateStatistics(
+                    data
+                );
+
+
+                renderQueue(
+                    currentQueues
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Queue error:",
+                    error
+                );
+
+
+                document.getElementById(
+                    "queueBody"
+                ).innerHTML = `
+
+                    <tr>
+
+                        <td colspan="7">
+
+                            <div class="empty">
+
+                                <div class="empty-icon">
+                                    ⚠️
+                                </div>
+
+                                <h3>
+                                    Unable to load queue
+                                </h3>
+
+                                <p>
+                                    ${escapeHtml(
+                                        error.message
+                                    )}
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+
+                document.getElementById(
+                    "queueBadge"
+                ).textContent =
+                    "ERROR";
+            }
+
+        }
+
+        async function loadStaffHistory(reset=true) {
+            const body = document.getElementById("staffHistoryBody");
+            try {
+                if (reset) staffHistoryOffset = 0;
+                const response = await fetch(`/api/user/staff-history/?offset=${staffHistoryOffset}&limit=20`, {credentials:"same-origin", headers:{Accept:"application/json"}});
+                const data = await queueLessReadJson(response);
+                if (!response.ok) throw new Error(data.message || "Unable to load queue history.");
+                if (reset) body.innerHTML = "";
+                if (reset && !data.records.length) body.innerHTML = '<tr><td colspan="6">No completed, cancelled, or skipped entries.</td></tr>';
+                data.records.forEach(record => {
+                    const row = document.createElement("tr");
+                    [record.token || "—", record.username || "Customer", record.service || "—", record.status, record.called_by || "—", record.created_at ? new Date(record.created_at).toLocaleString() : "—"].forEach(value => { const cell=document.createElement("td"); cell.textContent=value; row.appendChild(cell); });
+                    body.appendChild(row);
+                });
+                staffHistoryOffset = data.next_offset;
+                document.getElementById("staffHistoryMore").style.display = data.has_more ? "inline-block" : "none";
+            } catch (error) { body.innerHTML = `<tr><td colspan="6">${escapeHtml(error.message)}</td></tr>`; }
+        }
+
+        document.getElementById("staffHistoryMore").addEventListener("click", () => loadStaffHistory(false));
+
+
+
+        /* =====================================================
+           UPDATE STATISTICS
+        ===================================================== */
+
+        function updateStatistics(data) {
+
+
+            const waitingQueues =
+                currentQueues.filter(
+                    function (queue) {
+
+                        return (
+                            queue.status ===
+                            "waiting"
+                        );
+
+                    }
+                );
+
+
+            const waitingCount =
+                typeof data.waiting_count ===
+                "number"
+
+                    ? data.waiting_count
+
+                    : waitingQueues.length;
+
+
+            document.getElementById(
+                "waiting"
+            ).textContent =
+                waitingCount;
+
+
+
+            /* CURRENTLY SERVING */
+
+            const currentServing =
+                data.current_serving;
+
+
+            if (currentServing) {
+
+                document.getElementById(
+                    "currentlyServing"
+                ).textContent =
+                    currentServing.token ||
+                    "—";
+
+            } else {
+
+                document.getElementById(
+                    "currentlyServing"
+                ).textContent =
+                    "—";
+            }
+
+
+
+            /* ESTIMATED WAIT */
+
+            const estimatedMinutes =
+                waitingCount * 5;
+
+
+            document.getElementById(
+                "estimatedWait"
+            ).textContent =
+                estimatedMinutes +
+                " min";
+
+
+
+            /* BADGE */
+
+            document.getElementById(
+                "queueBadge"
+            ).textContent =
+                waitingCount > 0
+                    ? "QUEUE ACTIVE"
+                    : "QUEUE EMPTY";
+        }
+
+
+
+        /* =====================================================
+           RENDER QUEUE
+        ===================================================== */
+
+        function renderQueue(
+            queues
+        ) {
+
+
+            const queueBody =
+                document.getElementById(
+                    "queueBody"
+                );
+
+
+            const waitingQueues =
+                queues.filter(
+                    function (queue) {
+
+                        return (
+                            queue.status ===
+                            "waiting"
+                        );
+
+                    }
+                );
+
+
+            if (
+                waitingQueues.length ===
+                0
+            ) {
+
+
+                queueBody.innerHTML = `
+
+                    <tr>
+
+                        <td colspan="7">
+
+                            <div class="empty">
+
+                                <div class="empty-icon">
+                                    ✓
+                                </div>
+
+                                <h3>
+                                    No customers waiting
+                                </h3>
+
+                                <p>
+                                    The queue is currently empty.
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+
+                return;
+            }
+
+
+
+            queueBody.innerHTML =
+                waitingQueues
+                    .map(
+                        function (
+                            queue,
+                            index
+                        ) {
+
+
+                            const position =
+                                queue.position || index + 1;
+
+
+                            const estimatedWait =
+                                queue.estimated_wait || "—";
+
+
+                            const token =
+                                queue.token ||
+                                "Not Generated";
+
+
+                            const username =
+                                queue.username ||
+                                "Unknown Customer";
+
+
+                            const service =
+                                queue.service ||
+                                "Not Provided";
+
+
+                            return `
+
+                                <tr>
+
+
+                                    <td>
+                                        ${position}
+                                    </td>
+
+
+                                    <td class="token">
+                                        ${escapeHtml(
+                                            token
+                                        )}
+                                    </td>
+
+
+                                    <td>
+                                        ${escapeHtml(
+                                            username
+                                        )}
+                                    </td>
+
+
+                                    <td>
+                                        ${escapeHtml(
+                                            service
+                                        )}
+                                    </td>
+
+
+                                    <td>
+                                        ${escapeHtml(estimatedWait)}
+                                        min
+                                    </td>
+
+
+                                    <td>
+
+                                        <span class="waiting">
+                                            WAITING
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <button
+                                            class="call-btn"
+                                            onclick="callNextCustomer()"
+                                        >
+                                            Call
+                                        </button>
+
+                                    </td>
+
+
+                                </tr>
+
+                            `;
+
+                        }
+                    )
+                    .join("");
+        }
+
+
+
+        /* =====================================================
+           CALL NEXT CUSTOMER
+        ===================================================== */
+
+        async function callNextCustomer() {
+
+
+            const confirmed =
+                confirm(
+                    "Do you want to call the next customer?"
+                );
+
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            try {
+
+
+                const response =
+                    await fetch(
+                        CALL_NEXT_URL,
+                        {
+                            method: "POST",
+
+                            credentials:
+                                "same-origin",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+
+                                "Accept":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({})
+                        }
+                    );
+
+
+                const data =
+                    await queueLessReadJson(response);
+
+
+                if (
+                    response.status ===
+                    403
+                ) {
+
+                    alert(
+                        "Staff login required."
+                    );
+
+
+                    window.location.href =
+                        LOGIN_URL;
+
+
+                    return;
+                }
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    showMessage(
+                        data.message ||
+                        "Unable to call next customer.",
+                        "error"
+                    );
+
+
+                    return;
+                }
+
+
+                const queue =
+                    data.queue;
+
+
+                const token =
+                    queue &&
+                    queue.token
+                        ? queue.token
+                        : "customer";
+
+
+                showMessage(
+                    "Token " +
+                    token +
+                    " has been called successfully.",
+                    "success"
+                );
+
+
+                await loadQueue();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Call next error:",
+                    error
+                );
+
+
+                showMessage(
+                    "Something went wrong while calling the customer.",
+                    "error"
+                );
+            }
+
+        }
+
+
+
+        /* =====================================================
+           LOGOUT
+        ===================================================== */
+
+        async function logout() {
+
+
+            const confirmed =
+                confirm(
+                    "Are you sure you want to logout?"
+                );
+
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            try {
+
+
+                await fetch(
+                    LOGOUT_URL,
+                    {
+                        method: "POST",
+
+                        credentials:
+                            "same-origin",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        }
+                    }
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+            }
+
+
+            window.location.href =
+                LOGIN_URL;
+        }
+
+
+
+        /* =====================================================
+           ESCAPE HTML
+        ===================================================== */
+
+        function escapeHtml(
+            value
+        ) {
+
+
+            if (
+                value === null ||
+                value === undefined
+            ) {
+
+                return "";
+            }
+
+
+            return String(value)
+
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+        }
+
+
+
+        /* =====================================================
+           INITIALIZE
+        ===================================================== */
+
+        async function initializePage() {
+
+
+            const loggedIn =
+                await checkStaffLogin();
+
+
+            if (!loggedIn) {
+                return;
+            }
+
+
+            await loadQueue();
+            await loadStaffHistory();
+
+
+            /*
+             * Refresh database queue every 3 seconds.
+             */
+
+            setInterval(
+                loadQueue,
+                3000
+            );
+
+        }
+
+
+        initializePage();
+
+
+    </script>
+
+
+</body>
+
+</html>
