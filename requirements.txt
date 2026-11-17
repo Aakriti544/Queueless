@@ -8,7 +8,7 @@ cffi==2.1.1
 charset-normalizer==3.5.2
 cryptography==50.0.2
 distlib==0.4.3
-Django==6.1
+Django==5.2.19
 django-cors-headers==4.9.0
 djangorestframework==3.18.0
 filelock==3.32.0
@@ -17,7 +17,6 @@ gunicorn==27.0.1
 http_ece==1.2.1
 idna==3.20
 multidict==7.2.1
-mysqlclient==2.3.0
 pillow==13.0.0
 platformdirs==4.11.0
 propcache==0.5.4

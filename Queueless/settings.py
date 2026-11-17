@@ -183,24 +183,41 @@ if _missing_database_keys:
     )
 
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": os.environ["DB_NAME"],
+#         "USER": os.environ["DB_USER"],
+#         "PASSWORD": os.environ["DB_PASSWORD"],
+#         "HOST": os.environ["DB_HOST"],
+#         "PORT": os.environ["DB_PORT"],
+
+#         "OPTIONS": {
+#             "charset": "utf8mb4",
+#             "init_command": (
+#                 "SET sql_mode='STRICT_TRANS_TABLES', "
+#                 "default_storage_engine=INNODB"
+#             ),
+#         },
+
+#         "CONN_MAX_AGE": 60,
+#     }
+# }
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.environ["DB_NAME"],
-        "USER": os.environ["DB_USER"],
-        "PASSWORD": os.environ["DB_PASSWORD"],
-        "HOST": os.environ["DB_HOST"],
-        "PORT": os.environ["DB_PORT"],
-
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT", "4000"),
         "OPTIONS": {
             "charset": "utf8mb4",
-            "init_command": (
-                "SET sql_mode='STRICT_TRANS_TABLES', "
-                "default_storage_engine=INNODB"
-            ),
+            "ssl": {
+                "ca": str(BASE_DIR / "certs" / "isrgrootx1.pem"),
+                "check_hostname": True,
+            },
         },
-
-        "CONN_MAX_AGE": 60,
     }
 }
 
