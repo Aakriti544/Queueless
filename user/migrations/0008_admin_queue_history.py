@@ -14,6 +14,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='queue',
             name='called_by',
+            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='called_queues', to='user.user'),
+        ),
+        migrations.AlterField(
+            model_name='queue',
+            name='called_by',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='called_queues', to='user.user'),
         ),
         migrations.AlterField(
