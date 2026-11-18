@@ -10,7 +10,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
-
 # ============================================================
 # BASE DIRECTORY
 # ============================================================
@@ -27,7 +26,10 @@ load_dotenv(BASE_DIR / ".env", override=False)
 # ============================================================
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").strip().lower() in {
-    "1", "true", "yes", "on"
+    "1",
+    "true",
+    "yes",
+    "on",
 }
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
@@ -44,11 +46,7 @@ if not SECRET_KEY:
 # Allowed hosts
 _allowed_hosts_env = os.environ.get("DJANGO_ALLOWED_HOSTS", "")
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in _allowed_hosts_env.split(",")
-    if host.strip()
-]
+ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts_env.split(",") if host.strip()]
 
 if DEBUG and not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
@@ -61,9 +59,7 @@ elif not ALLOWED_HOSTS:
 # CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.environ.get(
-        "DJANGO_CSRF_TRUSTED_ORIGINS", ""
-    ).split(",")
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
 
@@ -79,11 +75,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "rest_framework",
-
     "corsheaders",
-
     "accounts",
     "user",
 ]
@@ -95,15 +88,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-
     # Static file serving in production
     "whitenoise.middleware.WhiteNoiseMiddleware",
-
     "django.contrib.sessions.middleware.SessionMiddleware",
-
     # CORS middleware
     "corsheaders.middleware.CorsMiddleware",
-
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -142,13 +131,10 @@ WSGI_APPLICATION = "Queueless.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-
         "DIRS": [
             BASE_DIR / "template",
         ],
-
         "APP_DIRS": True,
-
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
@@ -164,6 +150,11 @@ TEMPLATES = [
 # DATABASE - MYSQL
 # ============================================================
 
+
+# ============================================================
+# DATABASE - MYSQL
+# ============================================================
+
 _database_env_keys = (
     "DB_NAME",
     "DB_USER",
@@ -172,37 +163,27 @@ _database_env_keys = (
     "DB_PORT",
 )
 
-_missing_database_keys = [
-    key for key in _database_env_keys if not os.environ.get(key)
-]
+_missing_database_keys = [key for key in _database_env_keys if not os.environ.get(key)]
 
 if _missing_database_keys:
     raise ImproperlyConfigured(
-        "Missing database environment variables: "
-        + ", ".join(_missing_database_keys)
+        "Missing database environment variables: " + ", ".join(_missing_database_keys)
     )
 
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.mysql",
-#         "NAME": os.environ["DB_NAME"],
-#         "USER": os.environ["DB_USER"],
-#         "PASSWORD": os.environ["DB_PASSWORD"],
-#         "HOST": os.environ["DB_HOST"],
-#         "PORT": os.environ["DB_PORT"],
+# Enable SSL only when connecting to TiDB Cloud.
+_db_ssl_enabled = os.getenv("DB_SSL", "False").lower() == "true"
 
-#         "OPTIONS": {
-#             "charset": "utf8mb4",
-#             "init_command": (
-#                 "SET sql_mode='STRICT_TRANS_TABLES', "
-#                 "default_storage_engine=INNODB"
-#             ),
-#         },
+_db_options = {
+    "charset": "utf8mb4",
+}
 
-#         "CONN_MAX_AGE": 60,
-#     }
-# }
+if _db_ssl_enabled:
+    _db_options["ssl"] = {
+        "ca": str(BASE_DIR / "certs" / "isrgrootx1.pem"),
+        "check_hostname": True,
+    }
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
@@ -210,14 +191,8 @@ DATABASES = {
         "USER": os.getenv("DB_USER"),
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT", "4000"),
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "ssl": {
-                "ca": str(BASE_DIR / "certs" / "isrgrootx1.pem"),
-                "check_hostname": True,
-            },
-        },
+        "PORT": os.getenv("DB_PORT", "3306"),
+        "OPTIONS": _db_options,
     }
 }
 
@@ -266,11 +241,8 @@ STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
-
     "staticfiles": {
-        "BACKEND": (
-            "whitenoise.storage.CompressedManifestStaticFilesStorage"
-        ),
+        "BACKEND": ("whitenoise.storage.CompressedManifestStaticFilesStorage"),
     },
 }
 
@@ -290,23 +262,23 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = os.environ.get(
-    "EMAIL_HOST", "smtp.gmail.com"
-)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
 
-EMAIL_PORT = int(
-    os.environ.get("EMAIL_PORT", "587")
-)
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 
-EMAIL_USE_TLS = (
-    os.environ.get("EMAIL_USE_TLS", "True").strip().lower()
-    in {"1", "true", "yes", "on"}
-)
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
-EMAIL_USE_SSL = (
-    os.environ.get("EMAIL_USE_SSL", "False").strip().lower()
-    in {"1", "true", "yes", "on"}
-)
+EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 if EMAIL_USE_TLS and EMAIL_USE_SSL:
     raise ImproperlyConfigured(
@@ -315,30 +287,20 @@ if EMAIL_USE_TLS and EMAIL_USE_SSL:
 
 EMAIL_TIMEOUT = 10
 
-EMAIL_HOST_USER = os.environ.get(
-    "EMAIL_HOST_USER", ""
-)
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 
-EMAIL_HOST_PASSWORD = os.environ.get(
-    "EMAIL_HOST_PASSWORD", ""
-)
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER
-)
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 
 # ============================================================
 # WEB PUSH CONFIGURATION
 # ============================================================
 
-WEB_PUSH_VAPID_PUBLIC_KEY = os.environ.get(
-    "WEB_PUSH_VAPID_PUBLIC_KEY", ""
-).strip()
+WEB_PUSH_VAPID_PUBLIC_KEY = os.environ.get("WEB_PUSH_VAPID_PUBLIC_KEY", "").strip()
 
-WEB_PUSH_VAPID_PRIVATE_KEY = os.environ.get(
-    "WEB_PUSH_VAPID_PRIVATE_KEY", ""
-).strip()
+WEB_PUSH_VAPID_PRIVATE_KEY = os.environ.get("WEB_PUSH_VAPID_PRIVATE_KEY", "").strip()
 
 WEB_PUSH_VAPID_SUBJECT = os.environ.get(
     "WEB_PUSH_VAPID_SUBJECT",
@@ -388,9 +350,7 @@ if not DEBUG:
     SECURE_REFERRER_POLICY = "same-origin"
 
     # HSTS: enable after confirming HTTPS works correctly.
-    SECURE_HSTS_SECONDS = int(
-        os.environ.get("SECURE_HSTS_SECONDS", "0")
-    )
+    SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "0"))
 
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 

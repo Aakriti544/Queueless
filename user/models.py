@@ -132,12 +132,12 @@ class Queue(models.Model):
     # Customer who joined the queue
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="queues")
 
-    active_customer = models.OneToOneField(
+    active_customer = models.ForeignKey(
         User,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name="active_queue_entry",
+        related_name="active_queue_entries",
     )
 
     # Keep attribution optional until a staff member calls this queue entry.
@@ -238,7 +238,9 @@ class EmailOTP(models.Model):
 
 
 class CustomerNotification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="notifications"
+    )
     title = models.CharField(max_length=160)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

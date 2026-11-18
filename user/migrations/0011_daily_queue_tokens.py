@@ -19,32 +19,52 @@ def ensure_main_token_counter(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0010_queue_claim_order_index'),
+        ("user", "0010_queue_claim_order_index"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='queue',
-            name='unique_queue_token_number',
+            model_name="queue",
+            name="unique_queue_token_number",
         ),
         migrations.AddField(
-            model_name='queue',
-            name='active_customer',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='active_queue_entry', to='user.user'),
+            model_name="queue",
+            name="active_customer",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                db_constraint=False,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="active_queue_entries",
+                to="user.user",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="queue",
+            name="active_customer",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="active_queue_entries",
+                to="user.user",
+            ),
         ),
         migrations.AddField(
-            model_name='queue',
-            name='queue_date',
+            model_name="queue",
+            name="queue_date",
             field=models.DateField(default=django.utils.timezone.localdate),
         ),
         migrations.AddField(
-            model_name='queuetokencounter',
-            name='queue_date',
+            model_name="queuetokencounter",
+            name="queue_date",
             field=models.DateField(default=django.utils.timezone.localdate),
         ),
         migrations.RunPython(ensure_main_token_counter, migrations.RunPython.noop),
         migrations.AddConstraint(
-            model_name='queue',
-            constraint=models.UniqueConstraint(fields=('queue_date', 'token_number'), name='unique_queue_token_per_day'),
+            model_name="queue",
+            constraint=models.UniqueConstraint(
+                fields=("queue_date", "token_number"), name="unique_queue_token_per_day"
+            ),
         ),
     ]
