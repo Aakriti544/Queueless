@@ -1,11 +1,9 @@
 import json
 import logging
 import random
-import smtplib
+from html import escape
 
-from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
-from django.core.mail import send_mail
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
@@ -13,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from user.models import User, EmailOTP
+from user.services.brevo_email import BrevoEmailError, send_brevo_email
 
 logger = logging.getLogger(__name__)
 
@@ -34,39 +33,28 @@ def send_otp_email(username, email, otp, is_resend=False):
         f"Thank you,\n"
         f"QueueLess Team"
     )
+    safe_username = escape(username)
+    safe_otp = escape(otp)
+    html_message = (
+        f"<p>Hello {safe_username},</p>"
+        f"<p>{escape(headline)}: <strong>{safe_otp}</strong></p>"
+        "<p>This OTP is valid for 5 minutes.</p>"
+        "<p>Do not share this code with anyone.</p>"
+        "<p>Thank you,<br>QueueLess Team</p>"
+    )
 
-    send_mail(
+    send_brevo_email(
+        recipient=email,
         subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[email],
-        fail_silently=False,
+        text_content=message,
+        html_content=html_message,
     )
 
 
 def describe_email_error(error):
-
-    if isinstance(error, smtplib.SMTPAuthenticationError):
-        return (
-            "Email server rejected the login credentials. "
-            "Check EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in your "
-            ".env file - EMAIL_HOST_PASSWORD must be a 16-character "
-            "Gmail App Password, not your normal Gmail password."
-        )
-
-    if isinstance(
-        error, (smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, OSError)
-    ):
-        return (
-            "Could not connect to the email server (smtp.gmail.com:587). "
-            "Check your internet connection, firewall, or antivirus, "
-            "then try again."
-        )
-
-    if isinstance(error, smtplib.SMTPException):
-        return "The email server rejected the message. Please try again."
-
-    return "Unable to send OTP. Please check your email configuration."
+    if isinstance(error, BrevoEmailError):
+        return str(error)
+    return "We couldn't send your verification email. Please try again shortly."
 
 
 def get_json_body(request):
@@ -202,16 +190,7 @@ def signup_api(request):
 
     except Exception as error:
 
-        # Full exception + traceback -> Django terminal.
-        # This is the REAL reason ("535 Authentication failed",
-        # "Connection refused", etc.) instead of the generic
-        # message the browser sees.
-        logger.error(
-            "OTP email error while signing up %s: %s",
-            email,
-            error,
-            exc_info=True,
-        )
+        logger.warning("Signup OTP delivery failed (%s).", type(error).__name__)
 
         EmailOTP.objects.filter(email=email).delete()
 
@@ -632,12 +611,7 @@ def resend_otp(request):
 
     except Exception as error:
 
-        logger.error(
-            "Resend OTP error for %s: %s",
-            email,
-            error,
-            exc_info=True,
-        )
+        logger.warning("Resend OTP delivery failed (%s).", type(error).__name__)
 
         return JsonResponse(
             {"success": False, "message": describe_email_error(error)}, status=500

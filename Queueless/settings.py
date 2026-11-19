@@ -260,38 +260,15 @@ MEDIA_ROOT = BASE_DIR / "media"
 # EMAIL / OTP CONFIGURATION
 # ============================================================
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# Transactional email is sent directly through Brevo's HTTPS API.
+BREVO_API = os.environ.get("BREVO_API", "").strip()
 
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+BREVO_SENDER_EMAIL = os.environ.get("BREVO_SENDER_EMAIL", "").strip()
 
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+BREVO_SENDER_NAME = os.environ.get("BREVO_SENDER_NAME", "").strip() or "QueueLess"
 
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-
-EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
-
-if EMAIL_USE_TLS and EMAIL_USE_SSL:
-    raise ImproperlyConfigured(
-        "EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled."
-    )
-
-EMAIL_TIMEOUT = 10
-
+# Retained for the default Web Push VAPID mailto subject compatibility.
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 
 # ============================================================
@@ -368,8 +345,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # EMAIL CONFIGURATION WARNING
 # ============================================================
 
-if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+if not BREVO_API or not BREVO_SENDER_EMAIL:
     print(
-        "\nWARNING: Gmail email credentials are missing. "
-        "OTP email delivery will not work until configured.\n"
+        "\nWARNING: BREVO_API / BREVO_SENDER_EMAIL are missing. "
+        "Transactional email delivery will not work until configured.\n"
     )

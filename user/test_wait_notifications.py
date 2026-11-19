@@ -125,7 +125,7 @@ class WaitingNotificationTests(TestCase):
             Queue.objects.filter(pk=entry.pk).update(
                 status=terminal_status, active_customer=None
             )
-        with patch("user.services.notifications.send_mail") as send_mail:
+        with patch("user.services.notifications.send_brevo_email") as send_brevo_email:
             process_pending_queue_emails()
 
         reminders = QueueEmailDelivery.objects.filter(
@@ -134,4 +134,4 @@ class WaitingNotificationTests(TestCase):
         )
         self.assertTrue(reminders.exists())
         self.assertFalse(reminders.exclude(status=QueueEmailDelivery.STATUS_FAILED).exists())
-        send_mail.assert_not_called()
+        send_brevo_email.assert_not_called()

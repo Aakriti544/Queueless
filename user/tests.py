@@ -4,7 +4,6 @@ from io import StringIO
 from unittest.mock import patch
 
 from django.contrib.auth.hashers import check_password, make_password
-from django.core import mail
 from django.core.management import call_command
 from django.db import OperationalError
 from django.test import Client, TestCase, override_settings
@@ -483,27 +482,31 @@ class FlexiblePasswordTests(TestCase):
         )
         self.assertEqual(response.status_code, 401)
 
-    @override_settings(
-        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-        DEFAULT_FROM_EMAIL="noreply@example.test",
-    )
     def test_customer_signup_otp_and_login_accept_short_repeated_password(self):
         password = "aaaaaa"
-        signup = self.client.post(
-            "/api/user/signup/",
-            data=json.dumps({
-                "username": "Simple Password Customer",
-                "email": "simple-password@example.test",
-                "password": password,
-                "confirm_password": password,
-            }),
-            content_type="application/json",
+        with patch("user.views.auth.send_brevo_email") as send_brevo_email:
+            signup = self.client.post(
+                "/api/user/signup/",
+                data=json.dumps({
+                    "username": "Simple Password Customer",
+                    "email": "simple-password@example.test",
+                    "password": password,
+                    "confirm_password": password,
+                }),
+                content_type="application/json",
+            )
+        send_brevo_email.assert_called_once()
+        self.assertEqual(
+            send_brevo_email.call_args.kwargs["recipient"],
+            "simple-password@example.test",
         )
         self.assertEqual(signup.status_code, 200, signup.content)
         otp_record = EmailOTP.objects.get(email="simple-password@example.test")
         self.assertNotEqual(otp_record.password, password)
         self.assertTrue(check_password(password, otp_record.password))
-        otp = re.search(r"\b\d{6}\b", mail.outbox[-1].body).group(0)
+        otp = re.search(
+            r"\b\d{6}\b", send_brevo_email.call_args.kwargs["text_content"]
+        ).group(0)
 
         verified = self.client.post(
             "/api/user/verify-otp/",

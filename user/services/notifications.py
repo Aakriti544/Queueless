@@ -2,13 +2,12 @@
 
 from datetime import timedelta
 
-from django.conf import settings
-from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
 from user.models import PushSubscription, Queue, QueueEmailDelivery, QueuePushDelivery
+from user.services.brevo_email import send_brevo_email
 
 
 MAX_EMAIL_ATTEMPTS = 3
@@ -142,7 +141,7 @@ def _claim_email_delivery(now):
 
 
 def process_pending_queue_emails(batch_size=25, now=None):
-    """Attempt due emails without holding database locks during SMTP delivery."""
+    """Attempt due emails without holding database locks during delivery."""
     current_time = now or timezone.now()
     outcomes = {"processed": 0, "sent": 0, "retrying": 0, "failed": 0}
 
@@ -165,15 +164,11 @@ def process_pending_queue_emails(batch_size=25, now=None):
             outcomes["failed"] += 1
             continue
         try:
-            sent = send_mail(
+            send_brevo_email(
+                recipient=delivery["recipient"],
                 subject=delivery["subject"],
-                message=delivery["message"],
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[delivery["recipient"]],
-                fail_silently=False,
+                text_content=delivery["message"],
             )
-            if sent != 1:
-                raise RuntimeError("Email backend did not confirm delivery.")
         except Exception as error:
             retry_at = current_time + EMAIL_RETRY_BASE * (2 ** (delivery["attempt_count"] - 1))
             terminal = delivery["attempt_count"] >= MAX_EMAIL_ATTEMPTS

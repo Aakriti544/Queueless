@@ -3,9 +3,8 @@ from io import StringIO
 from datetime import timedelta
 from unittest.mock import patch
 
-from django.core import mail
 from django.core.management import call_command
-from django.test import Client, TestCase, override_settings
+from django.test import Client, TestCase
 from django.utils import timezone
 
 from user.models import (
@@ -21,6 +20,7 @@ from user.services.notifications import (
     enqueue_queue_email,
     process_pending_queue_emails,
 )
+from user.services.brevo_email import BrevoEmailError
 
 
 class QueueEmailNotificationTests(TestCase):
@@ -64,8 +64,8 @@ class QueueEmailNotificationTests(TestCase):
         )
 
     def test_all_queue_events_enqueue_email_and_keep_in_app_notifications(self):
-        # Queue events do not open an SMTP connection in the request path.
-        with patch("user.services.notifications.send_mail") as send_mail:
+        # Queue events only enqueue email; delivery uses the Brevo worker.
+        with patch("user.services.notifications.send_brevo_email") as send_brevo_email:
             joined = self.join(self.customer_client)
             self.assertEqual(joined.status_code, 201, joined.content)
             queue_id = joined.json()["queue"]["id"]
@@ -115,7 +115,7 @@ class QueueEmailNotificationTests(TestCase):
             )
             self.assertEqual(skipped.status_code, 200, skipped.content)
 
-        send_mail.assert_not_called()
+        send_brevo_email.assert_not_called()
         deliveries = list(QueueEmailDelivery.objects.order_by("event_key"))
         self.assertEqual(
             sorted(delivery.event for delivery in deliveries),
@@ -135,7 +135,7 @@ class QueueEmailNotificationTests(TestCase):
         delivery = QueueEmailDelivery.objects.get(event="joined")
         self.customer_client.session.flush()
 
-        with override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+        with patch("user.services.notifications.send_brevo_email") as send_brevo_email:
             result = process_pending_queue_emails()
 
         delivery.refresh_from_db()
@@ -143,14 +143,16 @@ class QueueEmailNotificationTests(TestCase):
         self.assertEqual(delivery.status, QueueEmailDelivery.STATUS_SENT)
         self.assertEqual(delivery.attempt_count, 1)
         self.assertIsNotNone(delivery.sent_at)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.customer.email])
+        send_brevo_email.assert_called_once()
+        self.assertEqual(
+            send_brevo_email.call_args.kwargs["recipient"], self.customer.email
+        )
 
     def test_management_command_sends_one_batch_and_exits(self):
         self.join(self.customer_client)
         output = StringIO()
 
-        with override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+        with patch("user.services.notifications.send_brevo_email"):
             call_command("send_queue_emails", once=True, stdout=output)
 
         delivery = QueueEmailDelivery.objects.get(event="joined")
@@ -163,8 +165,9 @@ class QueueEmailNotificationTests(TestCase):
         now = timezone.now() + timedelta(seconds=1)
 
         with patch(
-            "user.services.notifications.send_mail", side_effect=OSError("SMTP offline")
-        ) as send_mail:
+            "user.services.notifications.send_brevo_email",
+            side_effect=BrevoEmailError("Brevo HTTP 503"),
+        ) as send_brevo_email:
             for attempt in range(1, MAX_EMAIL_ATTEMPTS + 1):
                 result = process_pending_queue_emails(now=now)
                 delivery.refresh_from_db()
@@ -178,8 +181,8 @@ class QueueEmailNotificationTests(TestCase):
                     self.assertEqual(result["failed"], 1)
                     self.assertEqual(delivery.status, QueueEmailDelivery.STATUS_FAILED)
 
-        self.assertEqual(send_mail.call_count, MAX_EMAIL_ATTEMPTS)
-        self.assertIn("SMTP offline", delivery.last_error)
+        self.assertEqual(send_brevo_email.call_count, MAX_EMAIL_ATTEMPTS)
+        self.assertIn("Brevo HTTP 503", delivery.last_error)
 
     def test_duplicate_event_key_returns_one_delivery(self):
         self.join(self.customer_client)
@@ -203,12 +206,12 @@ class QueueEmailNotificationTests(TestCase):
             real_enqueue(*args, **kwargs)
             raise RuntimeError("force transaction rollback")
 
-        with patch("user.services.notifications.send_mail") as send_mail:
+        with patch("user.services.notifications.send_brevo_email") as send_brevo_email:
             with patch("user.views.queue.enqueue_queue_email", side_effect=enqueue_then_fail):
                 with self.assertRaisesRegex(RuntimeError, "force transaction rollback"):
                     self.join(self.customer_client)
             process_pending_queue_emails()
-            send_mail.assert_not_called()
+            send_brevo_email.assert_not_called()
 
         self.assertFalse(Queue.objects.filter(user=self.customer).exists())
         self.assertFalse(CustomerNotification.objects.filter(user=self.customer).exists())
