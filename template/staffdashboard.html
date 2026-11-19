@@ -8,77 +8,103 @@
 
     <title>QueueLess — Staff Dashboard</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --navy: #07152f;
+            --navy-2: #10264d;
+            --sky-light: #eefafd;
+            --sky: #dff5fa;
+            --sky-dark: #c5eaf1;
+            --blue: #216dff;
+            --white: #ffffff;
+            --text: #10203c;
+            --muted: #66748a;
+            --border: #d8e6eb;
+            --green: #3c8779;
+            --green-light: #e5f6f1;
+            --red: #b84444;
+            --red-light: #fff1f1;
+            --shadow: 0 8px 25px rgba(15, 35, 60, 0.06);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: "Inter", sans-serif;
         }
 
         body {
-            background: #f5f7fb;
-            color: #222;
+            min-height: 100vh;
+            background: var(--sky-light);
+            color: var(--text);
+            overflow-x: hidden;
         }
 
         .sidebar {
             position: fixed;
             left: 0;
             top: 0;
-            width: 250px;
+            width: 260px;
             height: 100vh;
-            background: #ffffff;
-            border-right: 1px solid #e5e7eb;
-            padding: 25px 18px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            padding: 25px 16px;
         }
 
         .logo {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 35px;
-            padding-left: 10px;
+            justify-content: center;
+            padding: 15px 5px 45px;
         }
 
         .logo img {
-            width: 42px;
-            height: 42px;
-            object-fit: contain;
-        }
-
-        .logo span {
-            font-size: 23px;
-            font-weight: bold;
-            color: #111827;
+            width: 205px;
+            max-width: 100%;
+            height: auto;
+            display: block;
         }
 
         .menu-title {
-            font-size: 12px;
-            color: #9ca3af;
-            margin: 20px 10px 10px;
-            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #718093;
+            padding-left: 16px;
+            margin-bottom: 12px;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         .menu a {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 13px 14px;
-            margin: 5px 0;
+            gap: 14px;
+            min-height: 50px;
+            padding: 12px 15px;
             text-decoration: none;
-            color: #4b5563;
-            border-radius: 9px;
-            font-size: 15px;
+            color: #34465d;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
             transition: 0.2s;
         }
 
         .menu a:hover {
-            background: #f3f4f6;
-            color: #111827;
+            background: var(--sky-light);
+            color: var(--navy);
         }
 
         .menu a.active {
-            background: #111827;
+            background: var(--navy);
             color: white;
         }
 
@@ -91,21 +117,25 @@
 
         .logout button {
             width: 100%;
-            padding: 12px;
+            min-height: 50px;
+            padding: 12px 15px;
             border: none;
-            background: #fee2e2;
-            color: #dc2626;
-            border-radius: 8px;
+            background: transparent;
+            color: #34465d;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 14px;
+            text-align: left;
+            transition: 0.2s;
         }
 
         .logout button:hover {
-            background: #fecaca;
+            background: var(--red-light);
+            color: var(--red);
         }
 
         .main {
-            margin-left: 250px;
+            margin-left: 260px;
             min-height: 100vh;
             padding: 30px;
         }
@@ -119,12 +149,13 @@
 
         .topbar h1 {
             font-size: 28px;
-            color: #111827;
+            color: var(--navy);
+            font-family: "Playfair Display", serif;
         }
 
         .topbar p {
             margin-top: 5px;
-            color: #6b7280;
+            color: var(--muted);
             font-size: 14px;
         }
 
@@ -134,15 +165,16 @@
             gap: 12px;
             background: white;
             padding: 10px 15px;
-            border-radius: 10px;
-            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
 
         .staff-avatar {
             width: 38px;
             height: 38px;
             border-radius: 50%;
-            background: #111827;
+            background: var(--navy);
             color: white;
             display: flex;
             align-items: center;
@@ -157,7 +189,7 @@
 
         .staff-role {
             font-size: 12px;
-            color: #6b7280;
+            color: var(--muted);
         }
 
         .cards {
@@ -168,14 +200,15 @@
         }
 
         .card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 17px;
             padding: 22px;
+            box-shadow: var(--shadow);
         }
 
         .card-title {
-            color: #6b7280;
+            color: var(--muted);
             font-size: 14px;
             margin-bottom: 10px;
         }
@@ -183,7 +216,8 @@
         .card-number {
             font-size: 30px;
             font-weight: bold;
-            color: #111827;
+            color: var(--navy);
+            font-family: "Playfair Display", serif;
         }
 
         .dashboard-grid {
@@ -193,10 +227,11 @@
         }
 
         .panel {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 17px;
             padding: 25px;
+            box-shadow: var(--shadow);
         }
 
         .panel-header {
@@ -208,19 +243,20 @@
 
         .panel-header h2 {
             font-size: 19px;
-            color: #111827;
+            color: var(--navy);
+            font-family: "Playfair Display", serif;
         }
 
         .status {
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 12px;
-            background: #dcfce7;
-            color: #15803d;
+            background: var(--green-light);
+            color: var(--green);
         }
 
         .customer-box {
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--border);
             border-radius: 10px;
             padding: 18px;
             margin-bottom: 15px;
@@ -241,11 +277,12 @@
         .token {
             font-size: 20px;
             font-weight: bold;
-            color: #111827;
+            color: var(--navy);
+            font-family: "Playfair Display", serif;
         }
 
         .details {
-            color: #6b7280;
+            color: var(--muted);
             font-size: 13px;
             line-height: 1.7;
         }
@@ -262,23 +299,23 @@
         }
 
         .btn-primary {
-            background: #111827;
+            background: var(--navy);
             color: white;
         }
 
         .btn-primary:hover {
-            background: #374151;
+            background: var(--navy-2);
         }
 
         .btn-secondary {
-            background: #f3f4f6;
-            color: #111827;
+            background: var(--sky-light);
+            color: var(--navy);
         }
 
         .empty {
             text-align: center;
             padding: 35px 10px;
-            color: #9ca3af;
+            color: var(--muted);
         }
 
         .queue-list {
@@ -291,7 +328,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 14px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border);
         }
 
         .queue-item:last-child {
@@ -304,7 +341,7 @@
         }
 
         .queue-left small {
-            color: #6b7280;
+            color: var(--muted);
         }
 
         .queue-token {
@@ -321,27 +358,27 @@
 
         .message.error {
             display: block;
-            background: #fee2e2;
-            color: #b91c1c;
+            background: var(--red-light);
+            color: var(--red);
         }
 
         .message.success {
             display: block;
-            background: #dcfce7;
-            color: #15803d;
+            background: var(--green-light);
+            color: var(--green);
         }
 
         @media (max-width: 900px) {
             .sidebar {
-                width: 210px;
+                width: 220px;
             }
 
             .main {
-                margin-left: 210px;
+                margin-left: 220px;
             }
 
             .cards {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .dashboard-grid {
@@ -369,6 +406,10 @@
                 padding: 20px;
             }
 
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
             .topbar {
                 flex-direction: column;
                 align-items: flex-start;
@@ -387,7 +428,6 @@
 
         <div class="logo">
             <img src="{% static 'logo/logo.png' %}" alt="QueueLess">
-            <span>QueueLess</span>
         </div>
 
         <div class="menu-title">Staff Menu</div>

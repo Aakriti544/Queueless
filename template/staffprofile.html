@@ -561,50 +561,11 @@
 
             <div class="field">
 
-                <span>ORGANIZATION</span>
-
-                <strong id="organization">
-
-                    Not provided
-
-                </strong>
-
-            </div>
-
-
-            <div class="field">
-
-                <span>BRANCH</span>
-
-                <strong id="branch">
-
-                    Not provided
-
-                </strong>
-
-            </div>
-
-
-            <div class="field">
-
                 <span>EMAIL</span>
 
                 <strong id="email">
 
                     Loading...
-
-                </strong>
-
-            </div>
-
-
-            <div class="field">
-
-                <span>PHONE</span>
-
-                <strong id="phone">
-
-                    Not provided
 
                 </strong>
 
@@ -784,24 +745,6 @@ async function loadCurrentStaff() {
                 .padStart(3, "0"));
 
 
-        const organization =
-            user.organization ||
-            user.organization_name ||
-            "Not Provided";
-
-
-        const branch =
-            user.branch ||
-            user.branch_name ||
-            "Not Provided";
-
-
-        const phone =
-            user.phone ||
-            user.phone_number ||
-            "Not Provided";
-
-
         /* =========================================
            DISPLAY NAME
         ========================================= */
@@ -839,7 +782,7 @@ async function loadCurrentStaff() {
         document.getElementById(
             "profileRole"
         ).textContent =
-            "Staff • " + branch;
+            "Staff";
 
 
         /* =========================================
@@ -853,26 +796,6 @@ async function loadCurrentStaff() {
 
 
         /* =========================================
-           ORGANIZATION
-        ========================================= */
-
-        document.getElementById(
-            "organization"
-        ).textContent =
-            organization;
-
-
-        /* =========================================
-           BRANCH
-        ========================================= */
-
-        document.getElementById(
-            "branch"
-        ).textContent =
-            branch;
-
-
-        /* =========================================
            EMAIL
         ========================================= */
 
@@ -880,16 +803,6 @@ async function loadCurrentStaff() {
             "email"
         ).textContent =
             email;
-
-
-        /* =========================================
-           PHONE
-        ========================================= */
-
-        document.getElementById(
-            "phone"
-        ).textContent =
-            phone;
 
 
     } catch (error) {
