@@ -1264,21 +1264,28 @@
       }
 
       let lastQueueNotificationId = null;
+      let queueNotificationRequestActive = false;
       async function checkQueueNotifications() {
+        if (queueNotificationRequestActive) return;
+        queueNotificationRequestActive = true;
         try {
-          const response = await fetch("/api/user/customer-notifications/", {
+          const params = new URLSearchParams({ include_unread_count: "0" });
+          if (lastQueueNotificationId !== null) params.set("after_id", lastQueueNotificationId);
+          const response = await fetch(`/api/user/customer-notifications/?${params}`, {
             credentials: "same-origin",
             headers: { Accept: "application/json" },
           });
           const data = await queueLessReadJson(response);
           if (!response.ok || !Array.isArray(data.notifications)) return;
-          const newestId = data.notifications[0]?.id ?? null;
+          const newestId = data.notifications.reduce((max, item) => Math.max(max, Number(item.id) || 0), lastQueueNotificationId || 0) || null;
           if (lastQueueNotificationId !== null && newestId !== null && newestId !== lastQueueNotificationId) {
             loadQueueStatus();
           }
-          lastQueueNotificationId = newestId;
+          if (newestId !== null) lastQueueNotificationId = newestId;
         } catch (error) {
           console.error("Queue notification refresh check failed:", error);
+        } finally {
+          queueNotificationRequestActive = false;
         }
       }
 
@@ -1497,15 +1504,13 @@
 
 ============================================================ */
 
-      setInterval(loadQueueStatus, 180000);
-      setInterval(checkQueueNotifications, 10000);
-      window.addEventListener("focus", loadQueueStatus);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") loadQueueStatus();
-      });
+      let queueStatusPoller;
+      let queueNotificationPoller;
+      queueStatusPoller = queueLessStartPolling(loadQueueStatus, 180000);
+      queueNotificationPoller = queueLessStartPolling(checkQueueNotifications, 10000);
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.addEventListener("message", (event) => {
-          if (event.data?.type === "queueless-queue-update") loadQueueStatus();
+          if (event.data?.type === "queueless-queue-update") queueStatusPoller.refresh();
         });
       }
     </script>

@@ -259,8 +259,9 @@ def customer_history_api(request):
         queryset = Queue.objects.filter(
             user=customer, status__in=("completed", "cancelled", "skipped")
         ).order_by("-created_at", "-pk")
-        records = list(queryset[offset:offset + limit])
-        has_more = queryset.count() > offset + len(records)
+        page = list(queryset[offset:offset + limit + 1])
+        has_more = len(page) > limit
+        records = page[:limit]
     except DatabaseError:
         logger.exception("Customer queue history query failed for customer %s", customer.pk)
         return JsonResponse(
@@ -304,4 +305,27 @@ def customer_notifications_api(request):
             qs = qs.filter(pk__in=[i for i in ids if isinstance(i, int)])
         qs.update(is_read=True)
     notes = CustomerNotification.objects.filter(user=customer)
-    return JsonResponse({"success": True, "unread_count": notes.filter(is_read=False).count(), "notifications": [{"id": n.pk, "title": n.title, "message": n.message, "created_at": n.created_at.isoformat(), "is_read": n.is_read} for n in notes[:100]]})
+    try:
+        after_id = max(0, int(request.GET.get("after_id", 0)))
+    except (TypeError, ValueError):
+        return JsonResponse({"success": False, "message": "Invalid notification cursor."}, status=400)
+    response_notes = notes.filter(pk__gt=after_id).order_by("pk") if after_id else notes
+    notification_rows = response_notes.values(
+        "id", "title", "message", "created_at", "is_read"
+    )[:100]
+    response_data = {
+        "success": True,
+        "notifications": [
+            {**item, "created_at": item["created_at"].isoformat()}
+            for item in notification_rows
+        ],
+    }
+    if request.GET.get("include_unread_ids") == "1":
+        unread_ids = list(
+            notes.filter(is_read=False).values_list("pk", flat=True)
+        )
+        response_data["unread_ids"] = unread_ids
+        response_data["unread_count"] = len(unread_ids)
+    elif request.GET.get("include_unread_count") != "0":
+        response_data["unread_count"] = notes.filter(is_read=False).count()
+    return JsonResponse(response_data)

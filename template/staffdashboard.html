@@ -721,7 +721,8 @@
         // LOAD QUEUE FROM DATABASE
         // ============================================
 
-        async function loadQueue() {
+        let staffQueueRequest = null;
+        async function performLoadQueue() {
 
             try {
 
@@ -781,6 +782,11 @@
 
             }
 
+        }
+
+        function loadQueue() {
+            if (!staffQueueRequest) staffQueueRequest = performLoadQueue().finally(() => { staffQueueRequest = null; });
+            return staffQueueRequest;
         }
 
 
@@ -1228,11 +1234,7 @@
         // AUTO REFRESH
         // ============================================
 
-        setInterval(() => {
-
-            loadQueue();
-
-        }, 3000);
+        queueLessStartPolling(loadQueue, 3000);
 
     </script>
 

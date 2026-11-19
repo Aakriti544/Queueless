@@ -1154,6 +1154,13 @@
 
         return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
       }
+      const adminLoadedData = { customers: false, staff: false, organization: false, services: false };
+      const adminCounts = { customers: 0, staff: 0 };
+      let adminCustomersRequest = null;
+      let adminStaffRequest = null;
+      let adminQueueLoading = false;
+      const adminQueueHistoryCache = new Map();
+      const adminQueueHistoryRequests = new Map();
       /* =====================================================
    ADMIN SESSION
 ===================================================== */
@@ -1245,7 +1252,7 @@
         }
 
         if (pageId === "dashboard") {
-          updateDashboard();
+          updateDashboard(true);
         }
 
         if (pageId === "customers") {
@@ -1307,11 +1314,14 @@
    LOAD CUSTOMERS FROM DJANGO DATABASE
 ===================================================== */
 
-      async function loadCustomers() {
+      async function loadCustomers(force = false) {
         const table = document.getElementById("customerTable");
         if (!table) return;
+        if (force) adminLoadedData.customers = false;
+        if (adminLoadedData.customers) return;
+        if (adminCustomersRequest) return adminCustomersRequest;
         table.innerHTML = '<tr><td colspan="5" style="text-align:center">Loading customers...</td></tr>';
-        try {
+        adminCustomersRequest = (async () => { try {
           const response = await fetch("/api/user/admin-customers/", {
             credentials: "same-origin",
             headers: { Accept: "application/json" },
@@ -1319,6 +1329,8 @@
           const data = await queueLessReadJson(response);
           if (!response.ok) throw new Error(data.message || "Unable to load customers.");
           const customers = data.customers || [];
+          adminLoadedData.customers = true;
+          adminCounts.customers = Number(data.count) || customers.length;
           if (!customers.length) {
             table.innerHTML = '<tr><td colspan="5" style="text-align:center">No customers registered.</td></tr>';
             return;
@@ -1335,18 +1347,22 @@
           }).join("");
         } catch (error) {
           table.innerHTML = `<tr><td colspan="5" style="text-align:center">${escapeHTML(error.message)}</td></tr>`;
-        }
+        } finally { adminCustomersRequest = null; } })();
+        return adminCustomersRequest;
       }
 
       /* =====================================================
    LOAD STAFF FROM DATABASE
 ===================================================== */
 
-      async function loadStaff() {
+      async function loadStaff(force = false) {
         const table = document.getElementById("staffTable");
         if (!table) return;
+        if (force) adminLoadedData.staff = false;
+        if (adminLoadedData.staff) return;
+        if (adminStaffRequest) return adminStaffRequest;
         table.innerHTML = '<tr><td colspan="5" style="text-align:center">Loading staff...</td></tr>';
-        try {
+        adminStaffRequest = (async () => { try {
           const response = await fetch("/api/user/admin-staff/", {
             credentials: "same-origin",
             headers: { Accept: "application/json" },
@@ -1354,6 +1370,8 @@
           const data = await queueLessReadJson(response);
           if (!response.ok) throw new Error(data.message || "Unable to load staff.");
           const staff = data.staff || [];
+          adminLoadedData.staff = true;
+          adminCounts.staff = Number(data.count) || staff.length;
           if (!staff.length) {
             table.innerHTML = '<tr><td colspan="5" style="text-align:center">No staff accounts created.</td></tr>';
             return;
@@ -1373,7 +1391,8 @@
           }).join("");
         } catch (error) {
           table.innerHTML = `<tr><td colspan="5" style="text-align:center">${escapeHTML(error.message)}</td></tr>`;
-        }
+        } finally { adminStaffRequest = null; } })();
+        return adminStaffRequest;
       }
 
       async function deleteStaff(staffId) {
@@ -1387,7 +1406,7 @@
           const data = await queueLessReadJson(response);
           if (!response.ok) throw new Error(data.message || "Unable to delete staff account.");
           showMessage("staffMessage", data.message, "success");
-          await loadStaff();
+          await loadStaff(true);
           await updateDashboard();
         } catch (error) {
           showMessage("staffMessage", error.message, "error");
@@ -1415,8 +1434,8 @@
           const data = await queueLessReadJson(response);
           if (!response.ok) throw new Error(data.message || `Unable to ${action} account.`);
           showMessage(role === "customer" ? "customerMessage" : "staffMessage", data.message, "success");
-          if (role === "customer") await loadCustomers();
-          else await loadStaff();
+          if (role === "customer") await loadCustomers(true);
+          else await loadStaff(true);
           await updateDashboard();
         } catch (error) {
           showMessage(role === "customer" ? "customerMessage" : "staffMessage", error.message, "error");
@@ -1527,7 +1546,7 @@
 
           /* REFRESH STAFF */
 
-          loadStaff();
+          loadStaff(true);
 
           updateDashboard();
         } catch (error) {
@@ -1547,43 +1566,19 @@
 
       async function updateDashboard() {
         try {
-          /* CUSTOMERS */
-
-          const customerResponse = await fetch("/api/user/admin-customers/", {
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-              Accept: "application/json",
-            },
-          });
-
-          const customerData = await queueLessReadJson(customerResponse);
+          await Promise.all([loadCustomers(), loadStaff()]);
 
           const customerCount = document.getElementById("customerCount");
 
           if (customerCount) {
-            customerCount.textContent = customerData.count || 0;
+            customerCount.textContent = adminCounts.customers;
           }
-
-          /* STAFF */
-
-          const staffResponse = await fetch("/api/user/admin-staff/", {
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-              Accept: "application/json",
-            },
-          });
-
-          const staffData = await queueLessReadJson(staffResponse);
 
           const staffCount = document.getElementById("staffCount");
 
           if (staffCount) {
-            staffCount.textContent = staffData.count || 0;
+            staffCount.textContent = adminCounts.staff;
           }
-
-          /* QUEUE */
 
           await updateQueue();
         } catch (error) {
@@ -1596,6 +1591,8 @@
 ===================================================== */
 
       async function updateQueue() {
+        if (adminQueueLoading) return;
+        adminQueueLoading = true;
         try {
           const response = await fetch("/api/user/staff-queue/", {
             method: "GET",
@@ -1734,21 +1731,16 @@
           }
         } catch (error) {
           console.error("Queue loading error:", error);
+        } finally {
+          adminQueueLoading = false;
         }
       }
 
       async function loadQueueHistory(status) {
         const table = document.getElementById("queueHistoryTable");
         if (!table) return;
-        table.innerHTML = '<tr><td colspan="6" style="text-align:center">Loading history...</td></tr>';
-        try {
-          const response = await fetch(`/api/user/admin/queue-history/${encodeURIComponent(status)}/`, {
-            credentials: "same-origin",
-            headers: { Accept: "application/json" },
-          });
-          const data = await queueLessReadJson(response);
-          if (!response.ok) throw new Error(data.message || "Unable to load queue history.");
-          const records = data.records || [];
+        const cached = adminQueueHistoryCache.get(status);
+        const render = (records) => {
           if (!records.length) {
             table.innerHTML = `<tr><td colspan="6" style="text-align:center">No ${escapeHTML(status)} queue records.</td></tr>`;
             return;
@@ -1767,9 +1759,27 @@
               <td>${escapeHTML(created)}</td>
             </tr>`;
           }).join("");
+        };
+        if (cached) render(cached.records);
+        if (cached && Date.now() - cached.at < 15000) return;
+        if (adminQueueHistoryRequests.has(status)) return adminQueueHistoryRequests.get(status);
+        if (!cached) table.innerHTML = '<tr><td colspan="6" style="text-align:center">Loading history...</td></tr>';
+        const request = (async () => { try {
+          const response = await fetch(`/api/user/admin/queue-history/${encodeURIComponent(status)}/`, {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" },
+          });
+          const data = await queueLessReadJson(response);
+          if (!response.ok) throw new Error(data.message || "Unable to load queue history.");
+          const records = data.records || [];
+          adminQueueHistoryCache.set(status, { records, at: Date.now() });
+          render(records);
         } catch (error) {
-          table.innerHTML = `<tr><td colspan="6" style="text-align:center">${escapeHTML(error.message)}</td></tr>`;
-        }
+          if (!cached) table.innerHTML = `<tr><td colspan="6" style="text-align:center">${escapeHTML(error.message)}</td></tr>`;
+          else console.error("Queue history refresh error:", error);
+        } finally { adminQueueHistoryRequests.delete(status); } })();
+        adminQueueHistoryRequests.set(status, request);
+        return request;
       }
 
       /* =====================================================
@@ -1821,6 +1831,7 @@
       /* LOAD ORGANIZATION */
 
       async function loadOrganization() {
+        if (adminLoadedData.organization) return;
         try {
           const response = await fetch("/api/user/organization/", {
             method: "GET",
@@ -1835,6 +1846,7 @@
           if (!response.ok) {
             throw new Error(data.message || "Unable to load organization.");
           }
+          adminLoadedData.organization = true;
 
           // Populate form fields
           document.getElementById("organizationName").value =
@@ -1976,6 +1988,7 @@
 
       async function loadServices() {
         const table = document.getElementById("serviceTable");
+        if (adminLoadedData.services) return;
 
         table.innerHTML = `
     <tr>
@@ -2001,6 +2014,7 @@
           }
 
           const services = data.services || [];
+          adminLoadedData.services = true;
 
           table.innerHTML = "";
 
@@ -2129,6 +2143,7 @@
 
           resetServiceForm();
 
+          adminLoadedData.services = false;
           loadServices();
         } catch (error) {
           console.error("Service save error:", error);
@@ -2224,6 +2239,7 @@
 
           showMessage("serviceMessage", data.message, "success");
 
+          adminLoadedData.services = false;
           loadServices();
         } catch (error) {
           showMessage("serviceMessage", error.message, "error");
@@ -2259,6 +2275,7 @@
 
           showMessage("serviceMessage", data.message, "success");
 
+          adminLoadedData.services = false;
           loadServices();
         } catch (error) {
           showMessage("serviceMessage", error.message, "error");
@@ -2276,26 +2293,13 @@
           return;
         }
 
-        await loadOrganization();
-
-        await updateDashboard();
-
-        await loadCustomers();
-
-        await loadStaff();
-
         restoreAdminPage();
 
-        /* AUTO REFRESH */
-
-        setInterval(function () {
-          updateDashboard();
-        }, 2000);
-
-        setInterval(function () {
-          loadCustomers();
-
-          loadStaff();
+        // Queue status is time-sensitive. Refresh it only while its dashboard
+        // or queue view is open; management lists are refreshed on demand.
+        queueLessStartPolling(function () {
+          const active = document.querySelector(".page.active");
+          if (active && ["dashboard", "queue"].includes(active.id)) updateQueue();
         }, 5000);
       }
 

@@ -1561,18 +1561,23 @@
       }
 
       let lastCustomerNotificationId = null;
+      let customerNotificationRequestActive = false;
       async function loadRecentNotifications() {
-        try { const r=await fetch("/api/user/customer-notifications/", {credentials:"same-origin"}); const d=await queueLessReadJson(r); if(!r.ok) throw Error(d.message||"Unable to load notifications.");
-          const newestId = d.notifications[0]?.id ?? null;
+        if (customerNotificationRequestActive) return;
+        customerNotificationRequestActive = true;
+        try { const params = new URLSearchParams({include_unread_count:"0"}); if(lastCustomerNotificationId!==null) params.set("after_id",lastCustomerNotificationId); const r=await fetch(`/api/user/customer-notifications/?${params}`, {credentials:"same-origin"}); const d=await queueLessReadJson(r); if(!r.ok) throw Error(d.message||"Unable to load notifications.");
+          const newestId = d.notifications.reduce((max, n) => Math.max(max, Number(n.id) || 0), lastCustomerNotificationId || 0) || null;
           if (lastCustomerNotificationId !== null && newestId !== null && newestId !== lastCustomerNotificationId) {
             loadCustomerQueue();
           }
-          lastCustomerNotificationId = newestId;
-          const root=document.getElementById("recentNotifications"); root.innerHTML="";
-          if (!d.notifications.length) { root.textContent="No notifications yet."; return; }
+          if (newestId !== null) lastCustomerNotificationId = newestId;
+          const root=document.getElementById("recentNotifications");
+          if (!d.notifications.length && lastCustomerNotificationId === null) { root.textContent="No notifications yet."; }
+          if (d.notifications.length) root.innerHTML="";
           const badge=document.querySelector(".notification-dot"); badge.textContent=d.unread_count ? String(d.unread_count) : ""; badge.classList.toggle("has-count",d.unread_count>0); badge.style.display=d.unread_count?"grid":"none"; document.getElementById("notificationButton").setAttribute("aria-label",`${d.unread_count} unread notifications`);
-          d.notifications.slice(0,3).forEach(n=>{const item=document.createElement("div");item.className="notification-item"+(n.is_read?"":" unread");const text=document.createElement("div");text.className="notification-text";const title=document.createElement("strong");title.textContent=n.title;const msg=document.createElement("p");msg.textContent=n.message;const time=document.createElement("small");time.textContent=new Date(n.created_at).toLocaleString();text.append(title,msg,time);item.append(text);root.append(item);});
+          d.notifications.slice(-3).reverse().forEach(n=>{const item=document.createElement("div");item.className="notification-item"+(n.is_read?"":" unread");const text=document.createElement("div");text.className="notification-text";const title=document.createElement("strong");title.textContent=n.title;const msg=document.createElement("p");msg.textContent=n.message;const time=document.createElement("small");time.textContent=new Date(n.created_at).toLocaleString();text.append(title,msg,time);item.append(text);root.append(item);});
         } catch(e) { document.getElementById("recentNotifications").textContent=e.message; }
+        finally { customerNotificationRequestActive = false; }
       }
 
       let historyOffset = 0;
@@ -1584,23 +1589,20 @@
    LOAD QUEUE WHEN PAGE OPENS
 ============================================================ */
 
+      let customerQueuePoller;
+      let customerNotificationPoller;
       document.addEventListener("DOMContentLoaded", function () {
         loadCustomerQueue();
         loadRecentNotifications();
         loadQueueHistory();
         document.getElementById("moreHistory").addEventListener("click",()=>loadQueueHistory(false));
 
-        setInterval(loadCustomerQueue, 180000);
-        setInterval(loadRecentNotifications, 10000);
-      });
-
-      window.addEventListener("focus", loadCustomerQueue);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") loadCustomerQueue();
+        customerQueuePoller = queueLessStartPolling(loadCustomerQueue, 180000);
+        customerNotificationPoller = queueLessStartPolling(loadRecentNotifications, 10000);
       });
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.addEventListener("message", (event) => {
-          if (event.data?.type === "queueless-queue-update") loadCustomerQueue();
+          if (event.data?.type === "queueless-queue-update") customerQueuePoller?.refresh();
         });
       }
 

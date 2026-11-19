@@ -89,15 +89,17 @@ def admin_dashboard(request):
 @require_http_methods(["GET"])
 @admin_required
 def admin_customers_api(request):
-    customers = User.objects.filter(role="customer").order_by("-created_at")
+    customers = User.objects.filter(role="customer").order_by("-created_at").values(
+        "id", "username", "email", "role", "is_active", "created_at"
+    )
     customer_list = [
         {
-            "id": customer.id,
-            "username": customer.username,
-            "email": customer.email,
-            "role": customer.role,
-            "is_active": customer.is_active,
-            "created_at": customer.created_at.isoformat(),
+            "id": customer["id"],
+            "username": customer["username"],
+            "email": customer["email"],
+            "role": customer["role"],
+            "is_active": customer["is_active"],
+            "created_at": customer["created_at"].isoformat(),
         }
         for customer in customers
     ]
@@ -115,15 +117,17 @@ def set_customer_active_api(request, customer_id):
 @require_http_methods(["GET"])
 @admin_required
 def admin_staff_api(request):
-    staff_users = User.objects.filter(role="staff").order_by("-created_at")
+    staff_users = User.objects.filter(role="staff").order_by("-created_at").values(
+        "id", "username", "email", "role", "is_active", "created_at"
+    )
     staff_list = [
         {
-            "id": staff.id,
-            "username": staff.username,
-            "email": staff.email,
-            "role": staff.role,
-            "is_active": staff.is_active,
-            "created_at": staff.created_at.isoformat(),
+            "id": staff["id"],
+            "username": staff["username"],
+            "email": staff["email"],
+            "role": staff["role"],
+            "is_active": staff["is_active"],
+            "created_at": staff["created_at"].isoformat(),
         }
         for staff in staff_users
     ]

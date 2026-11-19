@@ -999,7 +999,8 @@
            LOAD ALERTS FROM DATABASE
         ===================================================== */
 
-        async function loadAlerts() {
+        let staffAlertsRequest = null;
+        async function performLoadAlerts() {
 
             try {
 
@@ -1103,6 +1104,11 @@
         /* =====================================================
            RENDER ALERTS
         ===================================================== */
+
+        function loadAlerts() {
+            if (!staffAlertsRequest) staffAlertsRequest = performLoadAlerts().finally(() => { staffAlertsRequest = null; });
+            return staffAlertsRequest;
+        }
 
         function renderAlerts(
             queues
@@ -1653,10 +1659,7 @@
              * every 3 seconds.
              */
 
-            setInterval(
-                loadAlerts,
-                3000
-            );
+            queueLessStartPolling(loadAlerts, 3000);
         }
 
 

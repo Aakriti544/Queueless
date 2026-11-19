@@ -1,6 +1,9 @@
 from datetime import timedelta
+from math import ceil
 
+from django.conf import settings
 from django.db import transaction
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -32,9 +35,12 @@ def get_staff_user(request):
         return None
 
 
-def _staff_queue_data(entry):
+def _staff_queue_data(entry, position=None, estimated_wait=None):
     data = queue_to_dict(entry)
-    position, people_ahead, estimated_wait = queue_position(entry)
+    if position is None or estimated_wait is None:
+        position, people_ahead, estimated_wait = queue_position(entry)
+    else:
+        people_ahead = max(0, position - 1)
     data.update(
         {
             "position": position,
@@ -54,6 +60,51 @@ def _staff_queue_data(entry):
         }
     )
     return data
+
+
+def _waiting_queue_payloads(waiting_entries, active_entries):
+    """Build ordered waiting rows and estimates with shared query results."""
+    if not waiting_entries:
+        return []
+    baseline = max(0, int(settings.CUSTOMER_WAIT_ESTIMATE_MINUTES))
+    staff_ids = list(
+        User.objects.filter(role="staff", is_active=True).values_list("pk", flat=True)
+    )
+    workloads = {staff_id: 0 for staff_id in staff_ids}
+    if not staff_ids:
+        workloads[None] = baseline
+
+    unassigned_work = []
+    now = timezone.now()
+    for active in active_entries:
+        duration = active.service_duration_minutes
+        if duration:
+            if active.status == "serving":
+                elapsed = max(0, (now - active.updated_at).total_seconds() / 60)
+                remaining = max(0, duration - elapsed)
+            else:
+                remaining = duration
+        else:
+            remaining = baseline
+        if active.called_by_id in workloads:
+            workloads[active.called_by_id] += remaining
+        else:
+            unassigned_work.append(remaining)
+
+    for work in unassigned_work:
+        least_loaded = min(workloads, key=workloads.get)
+        workloads[least_loaded] += work
+
+    ordered_payloads = []
+    for index, entry in enumerate(waiting_entries):
+        estimate = max(0, int(ceil(min(workloads.values()))))
+        ordered_payloads.append(
+            _staff_queue_data(entry, position=index + 1, estimated_wait=estimate)
+        )
+        duration = max(0, int(entry.service_duration_minutes or baseline))
+        least_loaded = min(workloads, key=workloads.get)
+        workloads[least_loaded] += duration
+    return ordered_payloads
 
 
 def _get_queue_id(request):
@@ -88,25 +139,36 @@ def staff_queue_api(request):
         request.session.flush()
         return _staff_denied()
 
-    queue_qs = (
+    queue_entries = list(
         Queue.objects.filter(status__in=("waiting", "called", "serving"))
         .select_related("user", "called_by")
         .order_by("created_at", "pk")
     )
-    queue_list = [_staff_queue_data(entry) for entry in queue_qs]
-    current_qs = Queue.objects.filter(status__in=ACTIVE_STATUSES).select_related(
-        "user", "called_by"
-    )
-    if current_user.role == "staff":
-        current_qs = current_qs.filter(called_by=current_user)
-    current_entries = list(current_qs.order_by("created_at", "pk"))
+    waiting_entries = [entry for entry in queue_entries if entry.status == "waiting"]
+    active_entries = [entry for entry in queue_entries if entry.status in ACTIVE_STATUSES]
+    waiting_payloads = _waiting_queue_payloads(waiting_entries, active_entries)
+    waiting_by_id = {payload["id"]: payload for payload in waiting_payloads}
+    queue_list = [
+        waiting_by_id[entry.pk]
+        if entry.status == "waiting"
+        else _staff_queue_data(entry)
+        for entry in queue_entries
+    ]
+    current_entries = [
+        entry for entry in active_entries
+        if current_user.role == "admin" or entry.called_by_id == current_user.pk
+    ]
     current_serving = _staff_queue_data(current_entries[0]) if current_entries else None
+    counts = Queue.objects.aggregate(
+        waiting_count=Count("pk", filter=Q(status="waiting")),
+        completed_count=Count("pk", filter=Q(status="completed")),
+    )
     return JsonResponse(
         {
             "success": True,
             "queues": queue_list,
-            "waiting_count": Queue.objects.filter(status="waiting").count(),
-            "completed_count": Queue.objects.filter(status="completed").count(),
+            "waiting_count": counts["waiting_count"],
+            "completed_count": counts["completed_count"],
             "current_serving": current_serving,
             "my_calls": [_staff_queue_data(entry) for entry in current_entries],
             "current_user_id": current_user.id,
@@ -131,12 +193,17 @@ def staff_history_api(request):
     except (TypeError, ValueError):
         return JsonResponse({"success": False, "message": "Invalid history page."}, status=400)
     history = Queue.objects.filter(status__in=("completed", "cancelled", "skipped"))
-    records = list(history.select_related("user", "called_by").order_by("-created_at", "-pk")[offset:offset + limit])
+    page = list(
+        history.select_related("user", "called_by")
+        .order_by("-created_at", "-pk")[offset:offset + limit + 1]
+    )
+    has_more = len(page) > limit
+    records = page[:limit]
     return JsonResponse({
         "success": True,
         "records": [_staff_queue_data(entry) for entry in records],
         "next_offset": offset + len(records),
-        "has_more": history.count() > offset + len(records),
+        "has_more": has_more,
     })
 
 

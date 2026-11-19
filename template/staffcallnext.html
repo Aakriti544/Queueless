@@ -1107,7 +1107,8 @@
            LOAD QUEUE
         ===================================================== */
 
-        async function loadQueue() {
+        let staffQueueRequest = null;
+        async function performLoadQueue() {
 
             try {
 
@@ -1220,6 +1221,11 @@
         /* =====================================================
            CURRENT CUSTOMER
         ===================================================== */
+
+        function loadQueue() {
+            if (!staffQueueRequest) staffQueueRequest = performLoadQueue().finally(() => { staffQueueRequest = null; });
+            return staffQueueRequest;
+        }
 
         function renderCurrentCustomer() {
 
@@ -2023,10 +2029,7 @@
              * Automatically update from database.
              */
 
-            setInterval(
-                loadQueue,
-                3000
-            );
+            queueLessStartPolling(loadQueue, 3000);
         }
 
 
