@@ -5,9 +5,9 @@ from django.views.decorators.http import require_http_methods
 
 from user.models import PushSubscription, QueuePushDelivery
 from user.services.push import (
-    application_server_key_bytes,
     encrypt_subscription,
     endpoint_fingerprint,
+    push_configuration_status,
     push_is_configured,
     validate_subscription,
 )
@@ -23,16 +23,13 @@ def customer_push_subscriptions_api(request):
         return error
 
     if request.method == "GET":
-        configured = push_is_configured()
-        if configured:
-            try:
-                configured = len(application_server_key_bytes()) == 65
-            except ImproperlyConfigured:
-                configured = False
+        configuration = push_configuration_status()
+        configured = configuration["configured"]
         return JsonResponse(
             {
                 "success": True,
                 "configured": configured,
+                "configuration": configuration,
                 "vapid_public_key": (
                     settings_public_key() if configured else None
                 ),

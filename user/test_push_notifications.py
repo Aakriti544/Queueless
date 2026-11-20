@@ -4,6 +4,8 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from django.db.models import Count
 from django.test import Client, TestCase, override_settings
 from django.utils import timezone
@@ -22,13 +24,17 @@ from user.services.push_delivery import MAX_PUSH_ATTEMPTS, process_pending_queue
 from user.services.wait_notifications import process_waiting_notifications
 
 
-_PUBLIC_KEY = base64.urlsafe_b64encode(b"\x04" + b"p" * 64).rstrip(b"=").decode()
+_TEST_PRIVATE_KEY = base64.urlsafe_b64encode((1).to_bytes(32, "big")).rstrip(b"=").decode()
+_TEST_PUBLIC_KEY = ec.derive_private_key(1, ec.SECP256R1()).public_key().public_bytes(
+    Encoding.X962, PublicFormat.UncompressedPoint
+)
+_PUBLIC_KEY = base64.urlsafe_b64encode(_TEST_PUBLIC_KEY).rstrip(b"=").decode()
 _ENCRYPTION_KEY = Fernet.generate_key().decode()
 
 
 @override_settings(
     WEB_PUSH_VAPID_PUBLIC_KEY=_PUBLIC_KEY,
-    WEB_PUSH_VAPID_PRIVATE_KEY="test-private-key",
+    WEB_PUSH_VAPID_PRIVATE_KEY=_TEST_PRIVATE_KEY,
     WEB_PUSH_VAPID_SUBJECT="mailto:push@example.test",
     WEB_PUSH_SUBSCRIPTION_ENCRYPTION_KEY=_ENCRYPTION_KEY,
 )
@@ -152,6 +158,21 @@ class PushNotificationTests(TestCase):
             response = self.register(self.customer_client, "not-configured")
         self.assertEqual(response.status_code, 503)
         self.assertEqual(PushSubscription.objects.count(), 0)
+
+    def test_configuration_status_checks_key_pair_without_exposing_credentials(self):
+        response = self.customer_client.get("/api/user/customer-push-subscriptions/")
+        self.assertTrue(response.json()["configuration"]["configured"])
+        serialized = response.content.decode()
+        self.assertNotIn(_TEST_PRIVATE_KEY, serialized)
+        self.assertNotIn(_ENCRYPTION_KEY, serialized)
+
+        other_private_key = base64.urlsafe_b64encode((2).to_bytes(32, "big")).rstrip(b"=").decode()
+        with override_settings(WEB_PUSH_VAPID_PRIVATE_KEY=other_private_key):
+            response = self.customer_client.get("/api/user/customer-push-subscriptions/")
+        diagnostics = response.json()["configuration"]
+        self.assertFalse(diagnostics["configured"])
+        self.assertIn("VAPID key pair matches", diagnostics["missing_or_invalid"])
+        self.assertNotIn(other_private_key, response.content.decode())
 
     def test_all_queue_events_create_push_per_enabled_device_without_duplicate_in_app_or_email(self):
         main_devices = ("main-one", "main-two")

@@ -23,6 +23,7 @@ from .views.queue import (
     customer_history_api,
     customer_profile_api,
     customer_notifications_api,
+    notification_unread_count_api,
 )
 from .views.staff import (
     staff_queue_api,
@@ -76,6 +77,7 @@ urlpatterns = [
     path("customer-history/", customer_history_api, name="customer_history_api"),
     path("customer-profile/", customer_profile_api, name="customer_profile_api"),
     path("customer-notifications/", customer_notifications_api, name="customer_notifications_api"),
+    path("notification-unread-count/", notification_unread_count_api, name="notification_unread_count_api"),
     path(
         "customer-push-subscriptions/",
         customer_push_subscriptions_api,

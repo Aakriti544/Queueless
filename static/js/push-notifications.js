@@ -97,7 +97,10 @@
       serverState = await apiRequest("GET");
       currentSubscription = await findLocalSubscription();
       if (!serverState.configured) {
-        statusElement.textContent = "Push notifications are not configured on this QueueLess server.";
+        const issues = serverState.configuration?.missing_or_invalid || [];
+        statusElement.textContent = issues.length
+          ? `Push notifications are not configured. Check server settings: ${issues.join(", ")}.`
+          : "Push notifications are not configured on this QueueLess server.";
         button.disabled = true;
       } else if (Notification.permission === "denied" && !currentSubscription) {
         statusElement.textContent = "Notifications are blocked in browser settings. Allow them there to enable push.";

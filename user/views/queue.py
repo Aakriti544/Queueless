@@ -329,3 +329,21 @@ def customer_notifications_api(request):
     elif request.GET.get("include_unread_count") != "0":
         response_data["unread_count"] = notes.filter(is_read=False).count()
     return JsonResponse(response_data)
+
+
+@require_http_methods(["GET"])
+def notification_unread_count_api(request):
+    """Return the signed-in account's unread count, scoped to its own user row."""
+    if not request.session.get("is_logged_in") or not request.session.get("user_id"):
+        return JsonResponse({"success": False, "message": "Please login first."}, status=401)
+    try:
+        account = User.objects.get(
+            pk=request.session["user_id"],
+            is_active=True,
+            role=request.session.get("user_role"),
+        )
+    except (User.DoesNotExist, ValueError, TypeError):
+        request.session.flush()
+        return JsonResponse({"success": False, "message": "User session is invalid."}, status=401)
+    unread_count = CustomerNotification.objects.filter(user=account, is_read=False).count()
+    return JsonResponse({"success": True, "unread_count": unread_count})

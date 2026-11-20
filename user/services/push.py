@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import json
+import os
 import re
 from urllib.parse import urlsplit
 
@@ -26,20 +27,77 @@ _PUSH_HOSTS = {
 
 
 def push_is_configured():
-    configured = all(
-        (
-            settings.WEB_PUSH_VAPID_PUBLIC_KEY,
-            settings.WEB_PUSH_VAPID_PRIVATE_KEY,
-            settings.WEB_PUSH_VAPID_SUBJECT,
-            settings.WEB_PUSH_SUBSCRIPTION_ENCRYPTION_KEY,
-        )
-    )
-    if not configured:
-        return False
+    return push_configuration_status()["configured"]
+
+
+def push_configuration_status():
+    """Return safe, non-secret diagnostics for Web Push configuration."""
+    public_present = bool(settings.WEB_PUSH_VAPID_PUBLIC_KEY)
+    private_present = bool(settings.WEB_PUSH_VAPID_PRIVATE_KEY)
+    subject = settings.WEB_PUSH_VAPID_SUBJECT
+    subject_present = bool(subject)
+    encryption_present = bool(settings.WEB_PUSH_SUBSCRIPTION_ENCRYPTION_KEY)
+
     try:
-        return len(application_server_key_bytes()) == 65 and _fernet() is not None
+        public_bytes = application_server_key_bytes()
+        public_valid = len(public_bytes) == 65 and public_bytes[0] == 4
+    except (ImproperlyConfigured, ValueError, TypeError):
+        public_valid = False
+
+    private_valid = False
+    keys_match = False
+    if private_present:
+        try:
+            from py_vapid import Vapid
+            from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+
+            private_value = settings.WEB_PUSH_VAPID_PRIVATE_KEY
+            vapid = (
+                Vapid.from_file(private_key_file=private_value)
+                if os.path.isfile(private_value)
+                else Vapid.from_string(private_value)
+            )
+            derived_public = vapid.public_key.public_bytes(
+                Encoding.X962, PublicFormat.UncompressedPoint
+            )
+            private_valid = len(derived_public) == 65 and derived_public[0] == 4
+            keys_match = public_valid and private_valid and derived_public == public_bytes
+        except Exception:
+            # Keep diagnostics safe: never include key material or parser errors.
+            private_valid = False
+            keys_match = False
+
+    subject_valid = False
+    if subject_present:
+        if subject.startswith("mailto:"):
+            subject_valid = bool(subject[7:].strip())
+        else:
+            try:
+                parsed_subject = urlsplit(subject)
+                subject_valid = parsed_subject.scheme == "https" and bool(parsed_subject.netloc)
+            except ValueError:
+                subject_valid = False
+
+    try:
+        _fernet()
+        encryption_valid = True
     except ImproperlyConfigured:
-        return False
+        encryption_valid = False
+
+    checks = {
+        "WEB_PUSH_VAPID_PUBLIC_KEY": public_present and public_valid,
+        "WEB_PUSH_VAPID_PRIVATE_KEY": private_present and private_valid,
+        "WEB_PUSH_VAPID_SUBJECT": subject_present and subject_valid,
+        "WEB_PUSH_SUBSCRIPTION_ENCRYPTION_KEY": encryption_present and encryption_valid,
+    }
+    if public_present and private_present:
+        checks["VAPID key pair matches"] = keys_match
+
+    return {
+        "configured": all(checks.values()),
+        "checks": checks,
+        "missing_or_invalid": [name for name, passed in checks.items() if not passed],
+    }
 
 
 def validate_subscription(value):
