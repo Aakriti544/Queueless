@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import json
+import logging
 import os
 import re
 from urllib.parse import urlsplit
@@ -11,6 +12,8 @@ from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 
+logger = logging.getLogger(__name__)
+_last_encryption_diagnostic = None
 
 _B64URL_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 _PUSH_HOST_SUFFIXES = (
@@ -32,11 +35,14 @@ def push_is_configured():
 
 def push_configuration_status():
     """Return safe, non-secret diagnostics for Web Push configuration."""
-    public_present = bool(settings.WEB_PUSH_VAPID_PUBLIC_KEY)
-    private_present = bool(settings.WEB_PUSH_VAPID_PRIVATE_KEY)
-    subject = settings.WEB_PUSH_VAPID_SUBJECT
+    public_key = str(getattr(settings, "WEB_PUSH_VAPID_PUBLIC_KEY", "") or "").strip()
+    private_key = str(getattr(settings, "WEB_PUSH_VAPID_PRIVATE_KEY", "") or "").strip()
+    subject = str(getattr(settings, "WEB_PUSH_VAPID_SUBJECT", "") or "").strip()
+    public_present = bool(public_key)
+    private_present = bool(private_key)
     subject_present = bool(subject)
-    encryption_present = bool(settings.WEB_PUSH_SUBSCRIPTION_ENCRYPTION_KEY)
+    encryption_key = str(getattr(settings, "WEB_PUSH_SUBSCRIPTION_ENCRYPTION_KEY", "") or "").strip()
+    encryption_present = bool(encryption_key)
 
     try:
         public_bytes = application_server_key_bytes()
@@ -51,7 +57,7 @@ def push_configuration_status():
             from py_vapid import Vapid
             from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
-            private_value = settings.WEB_PUSH_VAPID_PRIVATE_KEY
+            private_value = private_key
             vapid = (
                 Vapid.from_file(private_key_file=private_value)
                 if os.path.isfile(private_value)
@@ -84,6 +90,17 @@ def push_configuration_status():
     except ImproperlyConfigured:
         encryption_valid = False
 
+    global _last_encryption_diagnostic
+    encryption_diagnostic = (encryption_present, encryption_valid)
+    if encryption_diagnostic != _last_encryption_diagnostic:
+        logger.log(
+            logging.INFO if encryption_valid else logging.WARNING,
+            "Web Push subscription encryption configuration: key_present=%s key_valid=%s",
+            encryption_present,
+            encryption_valid,
+        )
+        _last_encryption_diagnostic = encryption_diagnostic
+
     checks = {
         "WEB_PUSH_VAPID_PUBLIC_KEY": public_present and public_valid,
         "WEB_PUSH_VAPID_PRIVATE_KEY": private_present and private_valid,
@@ -95,6 +112,7 @@ def push_configuration_status():
 
     return {
         "configured": all(checks.values()),
+        "settings_module": settings.SETTINGS_MODULE,
         "checks": checks,
         "missing_or_invalid": [name for name, passed in checks.items() if not passed],
     }
@@ -146,7 +164,7 @@ def endpoint_fingerprint(endpoint):
 
 
 def _fernet():
-    key = settings.WEB_PUSH_SUBSCRIPTION_ENCRYPTION_KEY
+    key = str(getattr(settings, "WEB_PUSH_SUBSCRIPTION_ENCRYPTION_KEY", "") or "").strip()
     if not key:
         raise ImproperlyConfigured("Web Push subscription encryption is not configured.")
     try:
@@ -171,7 +189,7 @@ def decrypt_subscription(encrypted_value):
 
 
 def application_server_key_bytes():
-    key = settings.WEB_PUSH_VAPID_PUBLIC_KEY.strip()
+    key = str(getattr(settings, "WEB_PUSH_VAPID_PUBLIC_KEY", "") or "").strip()
     try:
         return base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
     except (ValueError, TypeError) as error:
