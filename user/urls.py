@@ -7,6 +7,13 @@ from .views.auth import (
     login_api,
     logout_api,
     current_user_api,
+    password_reset_request_api,
+    password_reset_resend_api,
+    password_reset_verify_api,
+    password_reset_complete_api,
+    forgot_password_page,
+    verify_password_otp_page,
+    reset_password_page,
 )
 from .views.queue import (
     join_queue_api,
@@ -50,6 +57,10 @@ from user.views.admin import (
 )
 
 urlpatterns = [
+    path("password-reset/request/", password_reset_request_api, name="password_reset_request"),
+    path("password-reset/resend/", password_reset_resend_api, name="password_reset_resend"),
+    path("password-reset/verify/", password_reset_verify_api, name="password_reset_verify"),
+    path("password-reset/complete/", password_reset_complete_api, name="password_reset_complete"),
     # Authentication
     path("signup/", signup_api, name="signup_api"),
     path("verify-otp/", verify_otp_api, name="verify_otp_api"),

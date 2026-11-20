@@ -38,6 +38,7 @@
 
   function supported() {
     return (
+      window.isSecureContext &&
       "Notification" in window &&
       "serviceWorker" in navigator &&
       "PushManager" in window
@@ -87,7 +88,9 @@
   async function refresh() {
     button.disabled = true;
     if (!supported()) {
-      statusElement.textContent = "This browser does not support Web Push notifications.";
+      statusElement.textContent = window.isSecureContext
+        ? "This browser does not support Web Push notifications."
+        : "Web Push requires HTTPS or localhost. Open QueueLess over a secure connection to enable notifications.";
       return;
     }
     try {
@@ -100,7 +103,7 @@
         statusElement.textContent = "Notifications are blocked in browser settings. Allow them there to enable push.";
         button.disabled = true;
       } else if (currentSubscription) {
-        statusElement.textContent = "Push notifications are enabled on this device.";
+        statusElement.textContent = "Push notifications are enabled.";
         render(statusElement.textContent, true);
       } else if (Notification.permission === "granted") {
         statusElement.textContent = "Push is allowed by your browser but is not enabled on this device.";
@@ -116,23 +119,23 @@
   }
 
   async function enablePush() {
-    if (Notification.permission === "denied") {
-      statusElement.textContent = "Notifications are blocked in browser settings. Allow them there, then try again.";
-      button.disabled = true;
-      return;
-    }
-    const permission = Notification.permission === "granted"
-      ? "granted"
-      : await Notification.requestPermission();
-    if (permission !== "granted") {
-      statusElement.textContent = permission === "denied"
-        ? "Notifications were denied. Change this site's permission in browser settings to enable push."
-        : "Push notifications were not enabled.";
-      await refresh();
-      return;
-    }
-
+    statusElement.textContent = "Enabling push notifications…";
+    button.disabled = true;
     try {
+      if (Notification.permission === "denied") {
+        statusElement.textContent = "Notifications are blocked in browser settings. Allow them there, then try again.";
+        return;
+      }
+      const permission = Notification.permission === "granted"
+        ? "granted"
+        : await Notification.requestPermission();
+      if (permission !== "granted") {
+        statusElement.textContent = permission === "denied"
+          ? "Notifications were denied. Change this site's permission in browser settings to enable push."
+          : "Push notifications were not enabled.";
+        button.disabled = permission === "denied";
+        return;
+      }
       registration = await navigator.serviceWorker.register(workerUrl);
       await waitUntilActive(registration);
       currentSubscription = await registration.pushManager.getSubscription();
@@ -143,11 +146,14 @@
         });
       }
       await apiRequest("POST", { subscription: currentSubscription.toJSON() });
-      statusElement.textContent = "Push notifications are enabled on this device.";
+      statusElement.textContent = "Push notifications enabled successfully!";
       render(statusElement.textContent, true);
     } catch (error) {
-      statusElement.textContent = error.message;
-      button.disabled = false;
+      statusElement.textContent = error.message || "Push notifications could not be enabled.";
+      // Leave the action as Enable so the next click can retry saving an
+      // existing browser subscription instead of unexpectedly unsubscribing it.
+      currentSubscription = null;
+      render(statusElement.textContent);
     }
   }
 
@@ -158,7 +164,7 @@
         await currentSubscription.unsubscribe();
       }
       currentSubscription = null;
-      statusElement.textContent = "Push notifications are disabled on this device.";
+      statusElement.textContent = "Push notifications are disabled.";
       render(statusElement.textContent);
     } catch (error) {
       statusElement.textContent = error.message;
@@ -166,12 +172,10 @@
     }
   }
 
-  button.addEventListener("click", () => {
+  button.addEventListener("click", async () => {
     button.disabled = true;
-    const action = currentSubscription ? disablePush() : enablePush();
-    action.finally(() => {
-      if (!currentSubscription && Notification.permission !== "denied") button.disabled = false;
-    });
+    if (currentSubscription) await disablePush();
+    else await enablePush();
   });
 
   document.addEventListener("DOMContentLoaded", refresh);

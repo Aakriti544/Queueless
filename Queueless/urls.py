@@ -15,6 +15,7 @@ from .views import (
     staffprofile,
     staffqueue,
 )
+from user.views.auth import forgot_password_page, verify_password_otp_page, reset_password_page
 
 from user.views.admin import admin_dashboard
 
@@ -32,6 +33,9 @@ urlpatterns = [
     # =====================================================
     path("", landing, name="home"),
     path("login.html/", login, name="login"),
+    path("forgot_password.html/", forgot_password_page, name="forgot_password"),
+    path("verify_otp.html/", verify_password_otp_page, name="verify_password_otp"),
+    path("reset_password.html/", reset_password_page, name="reset_password"),
     # =====================================================
     # CUSTOMER
     # =====================================================

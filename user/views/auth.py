@@ -1,6 +1,8 @@
 import json
 import logging
 import random
+import secrets
+from datetime import timedelta
 from html import escape
 
 from django.contrib.auth.hashers import make_password, check_password
@@ -10,10 +12,185 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from user.models import User, EmailOTP
+from user.models import User, EmailOTP, PasswordResetOTP
 from user.services.brevo_email import BrevoEmailError, send_brevo_email
 
 logger = logging.getLogger(__name__)
+
+PASSWORD_RESET_GENERIC = "If an account exists for that email, a verification code has been sent."
+
+
+def _reset_flow(request):
+    flow_id = request.session.get("password_reset_flow")
+    if not flow_id:
+        return None
+    return PasswordResetOTP.objects.filter(flow_id=flow_id).first()
+
+
+def _mask_email(email):
+    local, separator, domain = email.partition("@")
+    if not separator:
+        return email
+    return (local[:1] + "***" if local else "***") + "@" + domain
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def password_reset_request_api(request):
+    data = get_json_body(request)
+    if data is None:
+        return JsonResponse({"success": False, "message": "Invalid request."}, status=400)
+    email = str(data.get("email", "")).strip().lower()
+    if not email or "@" not in email or len(email) > 254:
+        return JsonResponse({"success": False, "message": "Enter a valid email address."}, status=400)
+
+    now = timezone.now()
+    # Per-address cooldown and rolling request limit apply even to unknown addresses.
+    recent = PasswordResetOTP.objects.filter(email__iexact=email, created_at__gte=now - timedelta(minutes=15))
+    if recent.filter(created_at__gte=now - timedelta(seconds=60)).exists():
+        request.session["password_reset_flow"] = recent.order_by("-created_at").first().flow_id
+        return JsonResponse({"success": True, "message": PASSWORD_RESET_GENERIC, "next": "/verify_otp.html/"})
+    if recent.count() >= 4:
+        return JsonResponse({"success": True, "message": PASSWORD_RESET_GENERIC, "next": "/verify_otp.html/"})
+
+    flow_id = secrets.token_urlsafe(32)
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    record = PasswordResetOTP.objects.create(
+        email=email,
+        flow_id=flow_id,
+        otp_hash=make_password(code),
+        created_at=now,
+        expires_at=now + timedelta(minutes=5),
+    )
+    request.session["password_reset_flow"] = flow_id
+    request.session["password_reset_email"] = email
+    user = User.objects.filter(email__iexact=email, is_active=True).order_by("-created_at").first()
+    if user:
+        try:
+            send_brevo_email(
+                recipient=user.email,
+                subject="QueueLess password reset code",
+                text_content=f"Hello {user.username},\n\nYour QueueLess password reset code is {code}. It expires in 5 minutes. Do not share it with anyone.",
+                html_content=f"<p>Hello {escape(user.username)},</p><p>Your QueueLess password reset code is <strong>{code}</strong>.</p><p>It expires in 5 minutes. Do not share it with anyone.</p>",
+            )
+        except Exception as error:
+            logger.warning("Password reset email delivery failed (%s).", type(error).__name__)
+            record.delete()
+            return JsonResponse({"success": True, "message": PASSWORD_RESET_GENERIC, "next": "/verify_otp.html/"})
+    return JsonResponse({"success": True, "message": PASSWORD_RESET_GENERIC, "next": "/verify_otp.html/"})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def password_reset_resend_api(request):
+    record = _reset_flow(request)
+    now = timezone.now()
+    if not record or record.consumed_at or record.verified_at:
+        return JsonResponse({"success": False, "message": "Please start a new password reset request."}, status=400)
+    if (now - record.created_at).total_seconds() < 60:
+        return JsonResponse({"success": False, "message": "Please wait before requesting another code."}, status=429)
+    if record.resend_count >= 3:
+        return JsonResponse({"success": False, "message": "Resend limit reached. Please start again later."}, status=429)
+    recent = PasswordResetOTP.objects.filter(email__iexact=record.email, created_at__gte=now - timedelta(minutes=15)).count()
+    if recent >= 4:
+        return JsonResponse({"success": False, "message": "Request limit reached. Please try again later."}, status=429)
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    user = User.objects.filter(email__iexact=record.email, is_active=True).order_by("-created_at").first()
+    if user:
+        try:
+            send_brevo_email(recipient=user.email, subject="QueueLess password reset code", text_content=f"Your new QueueLess password reset code is {code}. It expires in 5 minutes. Do not share it.")
+        except Exception as error:
+            logger.warning("Password reset resend failed (%s).", type(error).__name__)
+            return JsonResponse({"success": True, "message": PASSWORD_RESET_GENERIC})
+    record.otp_hash = make_password(code)
+    record.created_at = now
+    record.expires_at = now + timedelta(minutes=5)
+    record.attempts = 0
+    record.resend_count += 1
+    record.save(update_fields=["otp_hash", "created_at", "expires_at", "attempts", "resend_count"])
+    return JsonResponse({"success": True, "message": PASSWORD_RESET_GENERIC})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def password_reset_verify_api(request):
+    data = get_json_body(request)
+    record = _reset_flow(request)
+    if data is None or not record or record.consumed_at or record.verified_at:
+        return JsonResponse({"success": False, "message": "This reset request is no longer valid. Start again."}, status=400)
+    now = timezone.now()
+    if record.expires_at <= now:
+        return JsonResponse({"success": False, "message": "That code expired. Request a new one."}, status=400)
+    code = str(data.get("otp", "")).strip()
+    if record.attempts >= 5:
+        record.consumed_at = now
+        record.save(update_fields=["consumed_at"])
+        return JsonResponse({"success": False, "message": "Too many attempts. Start a new request."}, status=429)
+    if len(code) != 6 or not code.isdigit() or not check_password(code, record.otp_hash):
+        record.attempts += 1
+        if record.attempts >= 5:
+            record.consumed_at = now
+        record.save(update_fields=["attempts", "consumed_at"] if record.attempts >= 5 else ["attempts"])
+        return JsonResponse({"success": False, "message": "Incorrect or expired code."}, status=400)
+    record.verified_at = now
+    record.save(update_fields=["verified_at"])
+    request.session["password_reset_verified"] = record.flow_id
+    return JsonResponse({"success": True, "next": "/reset_password.html/"})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def password_reset_complete_api(request):
+    data = get_json_body(request)
+    record = _reset_flow(request)
+    if data is None or not record or record.consumed_at or not record.verified_at or request.session.get("password_reset_verified") != record.flow_id:
+        return JsonResponse({"success": False, "message": "Verify your email code before resetting the password."}, status=403)
+    if record.expires_at <= timezone.now():
+        return JsonResponse({"success": False, "message": "Your verification expired. Start a new request."}, status=400)
+    password = str(data.get("password", ""))
+    confirm = str(data.get("confirm_password", ""))
+    if password != confirm:
+        return JsonResponse({"success": False, "message": "Passwords do not match."}, status=400)
+    if len(password) < 8 or len(password) > 128:
+        return JsonResponse({"success": False, "message": "Password must be between 8 and 128 characters."}, status=400)
+    user = User.objects.filter(email__iexact=record.email, is_active=True).order_by("-created_at").first()
+    if not user:
+        record.consumed_at = timezone.now()
+        record.save(update_fields=["consumed_at"])
+        return JsonResponse({"success": False, "message": "The reset request is no longer valid. Start again."}, status=400)
+    with transaction.atomic():
+        user.password = make_password(password)
+        user.save(update_fields=["password", "updated_at"])
+        record.consumed_at = timezone.now()
+        record.save(update_fields=["consumed_at"])
+    request.session.flush()
+    request.session["user_id"] = user.id
+    request.session["user_email"] = user.email
+    request.session["username"] = user.username
+    request.session["user_role"] = user.role
+    request.session["is_logged_in"] = True
+    request.session.set_expiry(0)
+    redirect = {"customer": "/customerDashboard.html/", "staff": "/staffdashboard.html/", "admin": "/admindashboard.html/"}.get(user.role, "/login.html/")
+    return JsonResponse({"success": True, "message": "Your password has been reset successfully!", "redirect": redirect})
+
+
+def forgot_password_page(request):
+    from django.shortcuts import render
+    return render(request, "forgot_password.html")
+
+
+def verify_password_otp_page(request):
+    from django.shortcuts import render
+    email = request.session.get("password_reset_email", "")
+    return render(request, "verify_otp.html", {"masked_email": _mask_email(email) if email else "your email"})
+
+
+def reset_password_page(request):
+    from django.shortcuts import render
+    if not request.session.get("password_reset_verified"):
+        from django.shortcuts import redirect
+        return redirect("/forgot_password.html/")
+    return render(request, "reset_password.html")
 
 
 def send_otp_email(username, email, otp, is_resend=False):

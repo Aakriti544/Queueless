@@ -237,6 +237,23 @@ class EmailOTP(models.Model):
         return f"{self.email} - {self.otp}"
 
 
+class PasswordResetOTP(models.Model):
+    """Short lived, one-use password reset challenge."""
+
+    email = models.EmailField(db_index=True)
+    flow_id = models.CharField(max_length=64, unique=True)
+    otp_hash = models.CharField(max_length=128, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField()
+    verified_at = models.DateTimeField(null=True, blank=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    resend_count = models.PositiveSmallIntegerField(default=0)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Password reset for {self.email}"
+
+
 class CustomerNotification(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="notifications"
